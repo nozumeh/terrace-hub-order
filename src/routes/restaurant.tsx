@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { CsvImportDialog } from "@/components/CsvImportDialog";
 
 export const Route = createFileRoute("/restaurant")({ component: RestaurantPanel });
 
@@ -70,7 +71,7 @@ function RestaurantPanel() {
   }, [user, roles]);
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    const { error } = await supabase.from("orders").update({ status: status as never }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Actualizado"); refresh(); }
   };
@@ -92,6 +93,8 @@ function RestaurantPanel() {
       setEditingPrice((p) => { const n = { ...p }; delete n[id]; return n; });
     }
   };
+
+  const [importOpen, setImportOpen] = useState(false);
 
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
 
@@ -139,7 +142,20 @@ function RestaurantPanel() {
         )}
 
         <section className="rounded-xl border border-border bg-card p-6">
-          <h2 className="mb-4 font-heading text-xl font-bold">Menú</h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="font-heading text-xl font-bold">Menú</h2>
+            <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="h-3 w-3" /> Importar CSV
+            </Button>
+          </div>
+          {restaurantId && (
+            <CsvImportDialog
+              open={importOpen}
+              onOpenChange={setImportOpen}
+              restaurantId={restaurantId}
+              onImported={refresh}
+            />
+          )}
           <ul className="divide-y divide-border">
             {menu.map((m) => (
               <li key={m.id} className="flex flex-wrap items-center gap-3 py-3">
