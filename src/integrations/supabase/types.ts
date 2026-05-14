@@ -23,6 +23,7 @@ export type Database = {
           image_url: string | null
           is_available: boolean
           name: string
+          options: Json | null
           price: number
           restaurant_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean
           name: string
+          options?: Json | null
           price: number
           restaurant_id: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean
           name?: string
+          options?: Json | null
           price?: number
           restaurant_id?: string
         }
@@ -248,6 +251,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      import_menu_from_csv: {
+        Args: { _items: Json; _restaurant_id: string }
+        Returns: number
       }
     }
     Enums: {
