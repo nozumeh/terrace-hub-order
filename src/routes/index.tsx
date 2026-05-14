@@ -2,12 +2,34 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MousePointerClick, Bike, UtensilsCrossed, BadgePercent } from "lucide-react";
-import cityMarketHero from "@/assets/city-market-hero.jpg";
 import cityMarketHero640 from "@/assets/city-market-hero-640.jpg";
 import cityMarketHero1024 from "@/assets/city-market-hero-1024.jpg";
 import cityMarketHero1600 from "@/assets/city-market-hero-1600.jpg";
+import cityMarketHero640Webp from "@/assets/city-market-hero-640.webp";
+import cityMarketHero1024Webp from "@/assets/city-market-hero-1024.webp";
+import cityMarketHero1600Webp from "@/assets/city-market-hero-1600.webp";
+import cityMarketHero640Avif from "@/assets/city-market-hero-640.avif";
+import cityMarketHero1024Avif from "@/assets/city-market-hero-1024.avif";
+import cityMarketHero1600Avif from "@/assets/city-market-hero-1600.avif";
 
-export const Route = createFileRoute("/")({ component: Landing });
+export const Route = createFileRoute("/")({
+  component: Landing,
+  head: () => ({
+    links: [
+      // Preload the LCP background image as AVIF; browsers that don't support
+      // AVIF simply ignore the hint and load the WebP/JPEG fallback.
+      {
+        rel: "preload",
+        as: "image",
+        href: cityMarketHero1024Avif,
+        type: "image/avif",
+        imagesrcset: `${cityMarketHero640Avif} 640w, ${cityMarketHero1024Avif} 1024w, ${cityMarketHero1600Avif} 1600w`,
+        imagesizes: "100vw",
+        fetchpriority: "high",
+      },
+    ],
+  }),
+});
 
 function Landing() {
   return (
@@ -15,16 +37,28 @@ function Landing() {
       <Header />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
-        <img
-          src={cityMarketHero}
-          srcSet={`${cityMarketHero640} 640w, ${cityMarketHero1024} 1024w, ${cityMarketHero1600} 1600w, ${cityMarketHero} 2400w`}
-          sizes="100vw"
-          alt="City Market — el centro tecnológico de Caracas"
-          className="absolute inset-0 h-full w-full object-cover opacity-40 [object-position:70%_65%] sm:[object-position:60%_55%] md:[object-position:center]"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-        />
+        <picture>
+          <source
+            type="image/avif"
+            srcSet={`${cityMarketHero640Avif} 640w, ${cityMarketHero1024Avif} 1024w, ${cityMarketHero1600Avif} 1600w`}
+            sizes="100vw"
+          />
+          <source
+            type="image/webp"
+            srcSet={`${cityMarketHero640Webp} 640w, ${cityMarketHero1024Webp} 1024w, ${cityMarketHero1600Webp} 1600w`}
+            sizes="100vw"
+          />
+          <img
+            src={cityMarketHero1024}
+            srcSet={`${cityMarketHero640} 640w, ${cityMarketHero1024} 1024w, ${cityMarketHero1600} 1600w`}
+            sizes="100vw"
+            alt="City Market — el centro tecnológico de Caracas"
+            className="absolute inset-0 h-full w-full object-cover opacity-40 [object-position:70%_65%] sm:[object-position:60%_55%] md:[object-position:center]"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/85 md:bg-gradient-to-r md:from-background md:via-background/85 md:to-background/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent md:via-background/60" />
         <div className="absolute -right-20 top-1/3 h-[400px] w-[400px] rounded-full bg-gold/10 blur-3xl" />
