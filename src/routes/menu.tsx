@@ -3,6 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { CartSheet } from "@/components/CartSheet";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -12,7 +15,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/menu")({ component: MenuPage });
 
 interface Restaurant { id: string; name: string; description: string; is_active: boolean }
-interface Item { id: string; restaurant_id: string; name: string; description: string; price: number; category: string; is_available: boolean }
+interface Item { id: string; restaurant_id: string; name: string; description: string; price: number; category: string; is_available: boolean; image_url: string | null; options: string[] | null }
 
 function MenuPage() {
   const { profile, roles } = useAuth();
@@ -24,16 +27,18 @@ function MenuPage() {
   const [activeCat, setActiveCat] = useState<string>("All");
   const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
+  const [variantItem, setVariantItem] = useState<Item | null>(null);
+  const [variantChoice, setVariantChoice] = useState<string>("");
 
   useEffect(() => {
     (async () => {
       const [{ data: r }, { data: m }] = await Promise.all([
         supabase.from("restaurants").select("*").eq("is_active", true).order("name"),
-        supabase.from("menu_items").select("*").eq("is_available", true).order("category"),
+        supabase.from("menu_items").select("*").order("category"),
       ]);
       const rs = (r ?? []) as Restaurant[];
       setRestaurants(rs);
-      setItems((m ?? []) as Item[]);
+      setItems((m ?? []) as unknown as Item[]);
       setActiveResto(rs[0]?.id ?? null);
       setLoading(false);
     })();
@@ -45,8 +50,24 @@ function MenuPage() {
   const activeRestoObj = restaurants.find((r) => r.id === activeResto);
 
   const handleAdd = (i: Item) => {
+    if (!i.is_available) return;
+    if (Array.isArray(i.options) && i.options.length > 0) {
+      setVariantChoice(i.options[0]);
+      setVariantItem(i);
+      return;
+    }
     add({ menu_item_id: i.id, restaurant_id: i.restaurant_id, name: i.name, unit_price: Number(i.price) });
     toast.success(`${i.name} agregado`);
+  };
+
+  const confirmVariant = () => {
+    if (!variantItem || !variantChoice) return;
+    const composedId = `${variantItem.id}::${variantChoice}`;
+    const composedName = `${variantItem.name} — ${variantChoice}`;
+    add({ menu_item_id: composedId, restaurant_id: variantItem.restaurant_id, name: composedName, unit_price: Number(variantItem.price) });
+    toast.success(`${composedName} agregado`);
+    setVariantItem(null);
+    setVariantChoice("");
   };
 
   return (
@@ -101,9 +122,21 @@ function MenuPage() {
             {filtered.map((i) => {
               const price = Number(i.price);
               const discounted = Math.max(0, price - 1);
+              const unavailable = !i.is_available;
               return (
-                <div key={i.id} className="flex flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-gold/40">
-                  <div className="mb-3 flex aspect-[4/3] w-full items-center justify-center rounded-lg bg-background text-3xl">🍔</div>
+                <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
+                  <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-background">
+                    {i.image_url ? (
+                      <img src={i.image_url} alt={i.name} loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-3xl">🍔</div>
+                    )}
+                    {unavailable && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+                        <span className="rounded-md bg-destructive px-2 py-1 text-xs font-bold uppercase tracking-wider text-destructive-foreground">Agotado</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="font-medium">{i.name}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.description}</p>
                   <div className="mt-3 flex items-end justify-between">
@@ -117,7 +150,7 @@ function MenuPage() {
                         <div className="text-lg font-bold text-gold">${price.toFixed(2)}</div>
                       )}
                     </div>
-                    <Button size="sm" onClick={() => handleAdd(i)} className="bg-gold text-primary-foreground hover:bg-gold/90">
+                    <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="bg-gold text-primary-foreground hover:bg-gold/90">
                       <Plus className="h-3 w-3" /> Agregar
                     </Button>
                   </div>
@@ -127,6 +160,26 @@ function MenuPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!variantItem} onOpenChange={(v) => { if (!v) { setVariantItem(null); setVariantChoice(""); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{variantItem?.name}</DialogTitle>
+          </DialogHeader>
+          <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
+            {(variantItem?.options ?? []).map((opt) => (
+              <Label key={opt} htmlFor={`opt-${opt}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                <RadioGroupItem id={`opt-${opt}`} value={opt} />
+                <span className="text-sm">{opt}</span>
+              </Label>
+            ))}
+          </RadioGroup>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setVariantItem(null); setVariantChoice(""); }}>Cancelar</Button>
+            <Button onClick={confirmVariant} className="bg-gold text-primary-foreground hover:bg-gold/90">Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
