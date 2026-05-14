@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, FileUp } from "lucide-react";
+import { Loader2, FileUp, Download } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -62,6 +62,31 @@ function normalizeCategory(s: string): string {
   // WooCommerce categories often look like "Hamburguesas > Premium" or "Cat A | Cat B"
   const first = s.split("|")[0].split(">").pop() || s;
   return first.trim() || "Otros";
+}
+
+// Sample CSV matching the WooCommerce export format. Mapped columns:
+// Nombre (*), Precio normal (*), Categorías, Descripción corta, Imágenes,
+// ¿Existencias?, Tipo (rows with Tipo=variation are skipped). All other
+// WooCommerce columns are accepted and ignored.
+const SAMPLE_CSV = [
+  'ID,Tipo,SKU,"GTIN, UPC, EAN o ISBN",Nombre,Publicado,"¿Está destacado?","Visibilidad en el catálogo","Descripción corta",Descripción,"Día en que empieza el precio rebajado","Día en que termina el precio rebajado","Estado del impuesto","Clase de impuesto",¿Existencias?,Inventario,"Cantidad de bajo inventario","¿Permitir reservas de productos agotados?","¿Vendido individualmente?","Peso (lbs)","Longitud (in)","Anchura (in)","Altura (in)","¿Permitir valoraciones de clientes?","Nota de compra","Precio rebajado","Precio normal",Categorías,Etiquetas,"Clase de envío",Imágenes,"Límite de descargas","Días de caducidad de la descarga",Superior,"Productos agrupados","Ventas dirigidas","Ventas cruzadas","URL externa","Texto del botón",Posición,"Swatches Attributes",Marcas,"Nombre del atributo 1","Valor(es) del atributo 1","Atributo visible 1","Atributo global 1"',
+  '1001,simple,,,WASHINGTON D.C,1,0,visible,"Tomate, Rúgula, Tocineta, 215gr de Pollo Crispy, Pan de Batata, Queso Americano",,,,taxable,,1,,,0,0,,,,,1,,,6.99,HAMBURGUESAS,,,https://capitalburgers.online/wp-content/uploads/2026/04/WASHINTONG-CAT-3.jpg,,,,,,,,,0,,,,,,',
+  '1002,simple,,,MADRID,1,0,visible,"Lechuga, Tomate, Queso Americano, Pan de Batata",,,,taxable,,0,,,0,0,,,,,1,,,6.99,HAMBURGUESAS,,,https://capitalburgers.online/wp-content/uploads/2026/04/MADRID-CAT-1.jpg,,,,,,,,,0,,,,,,',
+  '1003,simple,,,COCA-COLA 355ML,1,0,visible,Refresco lata,,,,taxable,,1,,,0,0,,,,,1,,,1.50,BEBIDAS,,,,,,,,,,,,0,,,,,,',
+  '',
+].join('\n');
+
+function downloadSampleCsv() {
+  // Prepend BOM so Excel detects UTF-8 (accents in Categorías, Descripción).
+  const blob = new Blob(['\ufeff' + SAMPLE_CSV], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'menu-sample-woocommerce.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export function CsvImportDialog({ open, onOpenChange, restaurantId, onImported }: Props) {
@@ -139,6 +164,13 @@ export function CsvImportDialog({ open, onOpenChange, restaurantId, onImported }
           <DialogTitle>Importar CSV</DialogTitle>
           <DialogDescription>Formato WooCommerce — columnas: Nombre, Precio normal, Categorías, Descripción corta, Imágenes, ¿Existencias?, Tipo.</DialogDescription>
         </DialogHeader>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+          <span className="text-muted-foreground">¿No sabes cómo armar tu CSV? Descarga la plantilla.</span>
+          <Button type="button" variant="outline" size="sm" onClick={downloadSampleCsv}>
+            <Download className="h-3 w-3" /> Descargar CSV de ejemplo
+          </Button>
+        </div>
 
         <label
           htmlFor="csv-file-input"
