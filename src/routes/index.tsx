@@ -3,6 +3,9 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MousePointerClick, Bike, UtensilsCrossed, BadgePercent } from "lucide-react";
 import cityMarketHero from "@/assets/city-market-hero.jpg";
+import cityMarketHero640 from "@/assets/city-market-hero-640.jpg";
+import cityMarketHero1024 from "@/assets/city-market-hero-1024.jpg";
+import cityMarketHero1600 from "@/assets/city-market-hero-1600.jpg";
 
 export const Route = createFileRoute("/")({ component: Landing });
 
@@ -14,9 +17,13 @@ function Landing() {
       <section className="relative overflow-hidden border-b border-border">
         <img
           src={cityMarketHero}
+          srcSet={`${cityMarketHero640} 640w, ${cityMarketHero1024} 1024w, ${cityMarketHero1600} 1600w, ${cityMarketHero} 2400w`}
+          sizes="100vw"
           alt="City Market — el centro tecnológico de Caracas"
           className="absolute inset-0 h-full w-full object-cover opacity-40 [object-position:70%_65%] sm:[object-position:60%_55%] md:[object-position:center]"
           loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/85 md:bg-gradient-to-r md:from-background md:via-background/85 md:to-background/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent md:via-background/60" />
