@@ -14,16 +14,250 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      menu_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          name: string
+          price: number
+          restaurant_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name: string
+          price: number
+          restaurant_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name?: string
+          price?: number
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          id: string
+          menu_item_id: string
+          name: string
+          order_id: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          menu_item_id: string
+          name: string
+          order_id: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          menu_item_id?: string
+          name?: string
+          order_id?: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          delivery_floor: string
+          delivery_store: string
+          discount_applied: number
+          id: string
+          notes: string | null
+          order_number: number
+          restaurant_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          total_before_discount: number
+          total_final: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_floor?: string
+          delivery_store?: string
+          discount_applied?: number
+          id?: string
+          notes?: string | null
+          order_number?: number
+          restaurant_id: string
+          status?: Database["public"]["Enums"]["order_status"]
+          total_before_discount: number
+          total_final: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_floor?: string
+          delivery_store?: string
+          discount_applied?: number
+          id?: string
+          notes?: string | null
+          order_number?: number
+          restaurant_id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          total_before_discount?: number
+          total_final?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_employee: boolean
+          name: string
+          store_floor: string | null
+          store_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          is_employee?: boolean
+          name?: string
+          store_floor?: string | null
+          store_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_employee?: boolean
+          name?: string
+          store_floor?: string | null
+          store_name?: string | null
+        }
+        Relationships: []
+      }
+      restaurants: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          owner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          owner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "worker" | "supervisor" | "restaurant_owner" | "admin"
+      order_status:
+        | "pending"
+        | "confirmed"
+        | "preparing"
+        | "on_the_way"
+        | "delivered"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +384,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["worker", "supervisor", "restaurant_owner", "admin"],
+      order_status: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "on_the_way",
+        "delivered",
+      ],
+    },
   },
 } as const
