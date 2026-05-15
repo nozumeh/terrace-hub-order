@@ -21,7 +21,7 @@ interface OrderItem { id: string; order_id: string; name: string; quantity: numb
 interface Item { id: string; name: string; price: number; is_available: boolean; category: string }
 
 function RestaurantPanel() {
-  const { user, roles, loading } = useAuth();
+  const { user, roles, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
@@ -31,7 +31,7 @@ function RestaurantPanel() {
   const [editingPrice, setEditingPrice] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!loading && !roles.includes("restaurant_owner")) navigate({ to: "/" });
+    if (!loading && !isRestaurantOwner) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
@@ -65,7 +65,7 @@ function RestaurantPanel() {
   };
 
   useEffect(() => {
-    if (user && roles.includes("restaurant_owner")) refresh();
+    if (user && isRestaurantOwner) refresh();
     const interval = setInterval(() => { refresh(); }, 30000);
     return () => clearInterval(interval);
   }, [user, roles]);
@@ -77,12 +77,14 @@ function RestaurantPanel() {
   };
 
   const toggleAvailable = async (id: string, current: boolean) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
     if (error) toast.error(error.message);
     else { setMenu((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x)); }
   };
 
   const savePrice = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const newPrice = parseFloat(editingPrice[id]);
     if (isNaN(newPrice) || newPrice < 0) { toast.error("Precio inválido"); return; }
     const { error } = await supabase.from("menu_items").update({ price: newPrice }).eq("id", id);
@@ -152,10 +154,10 @@ function RestaurantPanel() {
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="font-heading text-xl font-bold">Menú</h2>
             <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
+              <Button asChild size="sm" disabled={!isRestaurantOwner} className="bg-gold text-primary-foreground hover:bg-gold/90">
                 <Link to="/restaurant/menu"><Settings2 className="h-3 w-3" /> Gestionar menú</Link>
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+              <Button size="sm" variant="outline" disabled={!isRestaurantOwner} onClick={() => { if (requireRestaurantOwner()) setImportOpen(true); }}>
                 <Upload className="h-3 w-3" /> Importar CSV
               </Button>
             </div>

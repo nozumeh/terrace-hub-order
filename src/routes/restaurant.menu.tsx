@@ -35,7 +35,7 @@ interface Extra { id: string; menu_item_id: string; name: string; price: number 
 interface Removable { id: string; menu_item_id: string; name: string }
 
 function MenuManager() {
-  const { user, roles, loading } = useAuth();
+  const { user, roles, loading, isRestaurantOwner } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
@@ -45,7 +45,7 @@ function MenuManager() {
   const [removables, setRemovables] = useState<Removable[]>([]);
 
   useEffect(() => {
-    if (!loading && !roles.includes("restaurant_owner")) navigate({ to: "/" });
+    if (!loading && !isRestaurantOwner) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
@@ -85,7 +85,7 @@ function MenuManager() {
   };
 
   useEffect(() => {
-    if (user && roles.includes("restaurant_owner")) refresh();
+    if (user && isRestaurantOwner) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, roles]);
 
@@ -94,6 +94,17 @@ function MenuManager() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div>
+      </div>
+    );
+  }
+
+  if (!isRestaurantOwner) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="mx-auto max-w-3xl p-8 text-center text-muted-foreground">
+          No tienes permisos para gestionar el menú.
+        </div>
       </div>
     );
   }
@@ -157,6 +168,7 @@ function MenuManager() {
 function CategoriesTab({
   restaurantId, categories, onChange,
 }: { restaurantId: string; categories: Category[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [name, setName] = useState("");
@@ -166,6 +178,7 @@ function CategoriesTab({
   const startEdit = (c: Category) => { setEditing(c); setName(c.name); setSortOrder(String(c.sort_order)); setOpen(true); };
 
   const save = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) { toast.error("Nombre requerido"); return; }
     const payload = { name: name.trim(), sort_order: parseInt(sortOrder) || 0, restaurant_id: restaurantId };
     const { error } = editing
@@ -176,6 +189,7 @@ function CategoriesTab({
   };
 
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_categories").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Categoría eliminada"); onChange();
@@ -234,6 +248,7 @@ function ItemsTab({
   restaurantId: string; categories: Category[]; items: Item[];
   extras: Extra[]; removables: Removable[]; onChange: () => void;
 }) {
+  const { requireRestaurantOwner } = useAuth();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [name, setName] = useState("");
@@ -267,6 +282,7 @@ function ItemsTab({
   };
 
   const save = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) { toast.error("Nombre requerido"); return; }
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) { toast.error("Precio inválido"); return; }
@@ -296,6 +312,7 @@ function ItemsTab({
   };
 
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     await supabase.from("menu_item_extras").delete().eq("menu_item_id", id);
     await supabase.from("menu_item_removable_options").delete().eq("menu_item_id", id);
     const { error } = await supabase.from("menu_items").delete().eq("id", id);
@@ -305,6 +322,7 @@ function ItemsTab({
 
   const onPickFile = async (file: File | null) => {
     if (!file) return;
+    if (!requireRestaurantOwner()) return;
     if (!file.type.startsWith("image/")) { toast.error("El archivo debe ser una imagen"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Máximo 5 MB"); return; }
     setUploading(true);
@@ -453,10 +471,12 @@ function ItemRow({
   item: Item; extras: Extra[]; removables: Removable[];
   onEdit: () => void; onDelete: () => void; onChange: () => void;
 }) {
+  const { requireRestaurantOwner } = useAuth();
   const [showExtras, setShowExtras] = useState(false);
   const [stockEdit, setStockEdit] = useState<string | null>(null);
 
   const toggleAvail = async () => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase
       .from("menu_items")
       .update({ is_available: !item.is_available })
@@ -466,6 +486,7 @@ function ItemRow({
   };
 
   const saveStock = async () => {
+    if (!requireRestaurantOwner()) return;
     const raw = stockEdit ?? "";
     let val: number | null = null;
     if (raw.trim() !== "") {
@@ -533,9 +554,11 @@ function ItemRow({
 }
 
 function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Extra[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("0");
   const add = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) return;
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) { toast.error("Precio inválido"); return; }
@@ -546,6 +569,7 @@ function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Ex
     setName(""); setPrice("0"); onChange();
   };
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_item_extras").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     onChange();
@@ -573,8 +597,10 @@ function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Ex
 }
 
 function RemovablesEditor({ itemId, removables, onChange }: { itemId: string; removables: Removable[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [name, setName] = useState("");
   const add = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) return;
     const { error } = await supabase.from("menu_item_removable_options").insert({
       menu_item_id: itemId, name: name.trim(),
@@ -583,6 +609,7 @@ function RemovablesEditor({ itemId, removables, onChange }: { itemId: string; re
     setName(""); onChange();
   };
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_item_removable_options").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     onChange();

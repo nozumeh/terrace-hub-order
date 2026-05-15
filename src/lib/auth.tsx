@@ -18,12 +18,16 @@ interface AuthCtx {
   profile: Profile | null;
   roles: Role[];
   loading: boolean;
+  isRestaurantOwner: boolean;
+  requireRestaurantOwner: (silent?: boolean) => boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx>({
   user: null, profile: null, roles: [], loading: true,
+  isRestaurantOwner: false,
+  requireRestaurantOwner: () => false,
   signOut: async () => {}, refresh: async () => {},
 });
 
@@ -58,7 +62,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => { await supabase.auth.signOut(); };
   const refresh = async () => { await loadExtras(user); };
 
-  return <Ctx.Provider value={{ user, profile, roles, loading, signOut, refresh }}>{children}</Ctx.Provider>;
+  const isRestaurantOwner = roles.includes("restaurant_owner");
+  const requireRestaurantOwner = (silent = false) => {
+    if (isRestaurantOwner) return true;
+    if (!silent) {
+      // Lazy-load toast to avoid a top-level import cycle.
+      import("sonner").then(({ toast }) =>
+        toast.error("Solo el dueño del restaurante puede realizar esta acción"),
+      );
+    }
+    return false;
+  };
+
+  return (
+    <Ctx.Provider
+      value={{ user, profile, roles, loading, isRestaurantOwner, requireRestaurantOwner, signOut, refresh }}
+    >
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export const useAuth = () => useContext(Ctx);
