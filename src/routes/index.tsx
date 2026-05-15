@@ -78,7 +78,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" className="bg-gold text-primary-foreground hover:bg-gold/90" asChild>
-              <Link to="/menu">Ver el Menú <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link to="/restaurants">Ver el Menú <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/login">Soy Empleado — Entrar</Link>
@@ -176,7 +176,7 @@ function Landing() {
 
 function RestoCard({ name, tag, desc, logo }: { name: string; tag: string; desc: string; logo?: string }) {
   return (
-    <Link to="/menu" className="group block rounded-xl border border-border bg-card p-6 transition-all hover:border-gold/50 hover:bg-card/80">
+    <Link to="/restaurants" className="group block rounded-xl border border-border bg-card p-6 transition-all hover:border-gold/50 hover:bg-card/80">
       <div className="flex items-start justify-between">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">{tag}</div>
