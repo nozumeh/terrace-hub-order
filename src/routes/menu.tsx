@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { CartSheet } from "@/components/CartSheet";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,17 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 
-export const Route = createFileRoute("/menu")({ component: MenuPage });
+type MenuSearch = { r?: string };
+export const Route = createFileRoute("/menu")({
+  component: MenuPage,
+  validateSearch: (s: Record<string, unknown>): MenuSearch => ({
+    r: typeof s.r === "string" ? s.r : undefined,
+  }),
+});
 
 interface Restaurant { id: string; name: string; description: string; is_active: boolean }
 interface Category { id: string; restaurant_id: string; name: string; sort_order: number }
@@ -40,6 +46,7 @@ function MenuPage() {
   const { profile, roles } = useAuth();
   const employee = isEmployee(profile, roles);
   const { add } = useCart();
+  const { r: restoParam } = Route.useSearch();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -66,7 +73,11 @@ function MenuPage() {
     setRestaurants(rs);
     setCategories((c ?? []) as Category[]);
     setItems((m ?? []) as unknown as Item[]);
-    setActiveResto((prev) => prev ?? rs[0]?.id ?? null);
+    setActiveResto((prev) => {
+      if (prev) return prev;
+      if (restoParam && rs.some((x) => x.id === restoParam)) return restoParam;
+      return rs[0]?.id ?? null;
+    });
     setLoading(false);
   };
 
