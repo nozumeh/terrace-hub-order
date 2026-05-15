@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   Menu as MenuIcon,
   Home,
-  ListOrdered,
   HelpCircle,
   Shield,
   Store,
@@ -54,7 +53,6 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
               <nav className="flex flex-col gap-1 p-3 text-sm">
                 <NavItem to="/" icon={Home} label="Inicio" onClick={close} />
                 <NavItem to="/restaurants" icon={Store} label="Restaurantes" onClick={close} />
-                <NavItem to="/menu" icon={ListOrdered} label="Menú completo" onClick={close} />
                 <NavItem to="/" hash="como-funciona" icon={HelpCircle} label="Cómo funciona" onClick={close} />
                 {roles.includes("admin") && (
                   <NavItem to="/admin" icon={Shield} label="Admin" highlight onClick={close} />
@@ -95,7 +93,6 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
         <nav className="hidden items-center gap-6 text-sm md:flex">
           <Link to="/" className="text-muted-foreground hover:text-foreground">Inicio</Link>
           <Link to="/restaurants" className="text-muted-foreground hover:text-foreground">Restaurantes</Link>
-          <Link to="/menu" className="text-muted-foreground hover:text-foreground">Menú</Link>
           <Link to="/" hash="como-funciona" className="text-muted-foreground hover:text-foreground">Cómo funciona</Link>
           {roles.includes("admin") && <Link to="/admin" className="text-gold hover:text-gold/80">Admin</Link>}
           {roles.includes("restaurant_owner") && <Link to="/restaurant" className="text-gold hover:text-gold/80">Restaurante</Link>}
@@ -144,7 +141,7 @@ function NavItem({
   highlight,
   onClick,
 }: {
-  to: "/" | "/restaurants" | "/menu" | "/admin" | "/restaurant" | "/login" | "/register" | "/account" | "/employee";
+  to: "/" | "/restaurants" | "/admin" | "/restaurant" | "/login" | "/register" | "/account" | "/employee";
   hash?: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
