@@ -4,9 +4,10 @@ import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldPlus, ShieldMinus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
@@ -29,20 +30,25 @@ function AdminPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [busy, setBusy] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminBusy, setAdminBusy] = useState(false);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!loading && !roles.includes("admin")) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
-    const [{ data: o }, { data: p }, { data: r }] = await Promise.all([
+    const [{ data: o }, { data: p }, { data: r }, { data: ar }] = await Promise.all([
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("restaurants").select("id,name,is_active,owner_id,description,phone,created_at").order("created_at", { ascending: false }),
+      supabase.from("user_roles").select("user_id").eq("role", "admin"),
     ]);
     setOrders((o ?? []) as Order[]);
     setProfiles((p ?? []) as Profile[]);
     setRestaurants((r ?? []) as Restaurant[]);
+    setAdminIds(new Set(((ar ?? []) as { user_id: string }[]).map((x) => x.user_id)));
     setBusy(false);
   };
 
@@ -109,6 +115,22 @@ function AdminPage() {
     }
     toast.success("Solicitud rechazada");
     refresh();
+  };
+
+  const promoteAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminBusy(true);
+    const { error } = await supabase.rpc("promote_user_to_admin_by_email" as never, { _email: adminEmail } as never);
+    setAdminBusy(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Usuario promovido a admin"); setAdminEmail(""); refresh(); }
+  };
+
+  const revokeAdmin = async (email: string) => {
+    if (!confirm(`¿Quitar permisos de admin a ${email}?`)) return;
+    const { error } = await supabase.rpc("revoke_admin_by_email" as never, { _email: email } as never);
+    if (error) toast.error(error.message);
+    else { toast.success("Admin revocado"); refresh(); }
   };
 
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
@@ -241,6 +263,41 @@ function AdminPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* Admin management */}
+        <section className="rounded-xl border border-gold/30 bg-card p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <ShieldPlus className="h-5 w-5 text-gold" />
+            <h2 className="font-heading text-xl font-bold">Administradores</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">Otorga el rol de administrador a un usuario existente por su email. El usuario debe haberse registrado previamente.</p>
+          <form onSubmit={promoteAdmin} className="flex flex-wrap items-end gap-2">
+            <div className="min-w-[260px] flex-1 space-y-1.5">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email del usuario</label>
+              <Input type="email" required value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder="usuario@email.com" />
+            </div>
+            <Button type="submit" disabled={adminBusy} className="bg-gold text-primary-foreground hover:bg-gold/90">
+              {adminBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ShieldPlus className="h-4 w-4" /> Promover a admin</>}
+            </Button>
+          </form>
+          <div className="mt-6">
+            <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Admins actuales ({adminIds.size})</div>
+            <ul className="space-y-2">
+              {profiles.filter((p) => adminIds.has(p.id)).map((p) => (
+                <li key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-background p-3 text-sm">
+                  <div>
+                    <div className="font-medium">{p.name || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{p.email}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => revokeAdmin(p.email)}>
+                    <ShieldMinus className="h-3 w-3" /> Revocar
+                  </Button>
+                </li>
+              ))}
+              {adminIds.size === 0 && <li className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">No hay admins registrados.</li>}
+            </ul>
           </div>
         </section>
       </div>
