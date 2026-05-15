@@ -63,7 +63,7 @@ function Checkout() {
           variant: i.variant,
           extras: i.extras,
           removed: i.removed,
-        },
+        } as unknown as never,
       }))
     );
     if (itemsErr) { setBusy(false); toast.error(itemsErr.message); return; }
