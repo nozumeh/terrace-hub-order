@@ -18,6 +18,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RestaurantRunnersRouteImport } from './routes/restaurant.runners'
 import { Route as RestaurantMenuRouteImport } from './routes/restaurant.menu'
 import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitchen'
 import { Route as RestaurantInventoryRouteImport } from './routes/restaurant.inventory'
@@ -69,6 +70,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestaurantRunnersRoute = RestaurantRunnersRouteImport.update({
+  id: '/runners',
+  path: '/runners',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 const RestaurantMenuRoute = RestaurantMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/runners': typeof RestaurantRunnersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/runners': typeof RestaurantRunnersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/runners': typeof RestaurantRunnersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/runners'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/runners'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/runners'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/restaurant/runners': {
+      id: '/restaurant/runners'
+      path: '/runners'
+      fullPath: '/restaurant/runners'
+      preLoaderRoute: typeof RestaurantRunnersRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
     '/restaurant/menu': {
       id: '/restaurant/menu'
       path: '/menu'
@@ -316,6 +335,7 @@ interface RestaurantRouteChildren {
   RestaurantInventoryRoute: typeof RestaurantInventoryRoute
   RestaurantKitchenRoute: typeof RestaurantKitchenRoute
   RestaurantMenuRoute: typeof RestaurantMenuRoute
+  RestaurantRunnersRoute: typeof RestaurantRunnersRoute
 }
 
 const RestaurantRouteChildren: RestaurantRouteChildren = {
@@ -323,6 +343,7 @@ const RestaurantRouteChildren: RestaurantRouteChildren = {
   RestaurantInventoryRoute: RestaurantInventoryRoute,
   RestaurantKitchenRoute: RestaurantKitchenRoute,
   RestaurantMenuRoute: RestaurantMenuRoute,
+  RestaurantRunnersRoute: RestaurantRunnersRoute,
 }
 
 const RestaurantRouteWithChildren = RestaurantRoute._addFileChildren(
