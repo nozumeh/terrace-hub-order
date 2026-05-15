@@ -13,6 +13,8 @@ import { useCart } from "@/lib/cart";
 import { Plus, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 type MenuSearch = { r?: string };
 export const Route = createFileRoute("/menu")({
@@ -58,6 +60,7 @@ function MenuPage() {
   const [variantChoice, setVariantChoice] = useState<string>("");
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
+  const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
 
   const fetchAll = async () => {
     const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
@@ -73,11 +76,26 @@ function MenuPage() {
     setRestaurants(rs);
     setCategories((c ?? []) as Category[]);
     setItems((m ?? []) as unknown as Item[]);
+    let nextActive: string | null = null;
     setActiveResto((prev) => {
-      if (prev) return prev;
-      if (restoParam && rs.some((x) => x.id === restoParam)) return restoParam;
-      return rs[0]?.id ?? null;
+      if (prev) { nextActive = prev; return prev; }
+      if (restoParam && rs.some((x) => x.id === restoParam)) { nextActive = restoParam; return restoParam; }
+      nextActive = rs[0]?.id ?? null;
+      return nextActive;
     });
+    if (restoParam && !rs.some((x) => x.id === restoParam)) {
+      const { data: maybe } = await supabase
+        .from("restaurants")
+        .select("id,name,is_active")
+        .eq("id", restoParam)
+        .maybeSingle();
+      const fb = rs.find((x) => x.id === nextActive)?.name ?? null;
+      if (!maybe) setParamIssue({ reason: "missing", fallbackName: fb });
+      else if (!maybe.is_active) setParamIssue({ reason: "inactive", fallbackName: fb });
+      else setParamIssue(null);
+    } else {
+      setParamIssue(null);
+    }
     setLoading(false);
   };
 
@@ -196,6 +214,23 @@ function MenuPage() {
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Restaurantes
         </Link>
+        {paramIssue && (
+          <Alert className="mb-4 border-gold/40 bg-gold/5">
+            <AlertTriangle className="h-4 w-4 text-gold" />
+            <AlertTitle>Restaurante no disponible</AlertTitle>
+            <AlertDescription>
+              {paramIssue.reason === "missing"
+                ? "El restaurante solicitado no existe."
+                : "El restaurante solicitado está temporalmente inactivo."}
+              {paramIssue.fallbackName
+                ? ` Te mostramos el menú de ${paramIssue.fallbackName}.`
+                : " No hay restaurantes disponibles por ahora."}{" "}
+              <Link to="/restaurants" className="font-medium text-gold underline-offset-2 hover:underline">
+                Ver todos
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Restaurant tabs (quick switcher) */}
         <div className="mb-6 flex gap-2 overflow-x-auto">
           {restaurants.map((r) => (
