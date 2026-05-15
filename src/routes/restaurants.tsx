@@ -29,6 +29,7 @@ function RestaurantsPage() {
   const { selected } = Route.useSearch();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const selectedRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
@@ -58,6 +59,14 @@ function RestaurantsPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <Header />
+      {navigatingTo && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm animate-fade-in">
+          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+          <div className="text-sm font-medium text-muted-foreground">
+            Abriendo menú de <span className="text-foreground">{navigatingTo}</span>…
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
         <div className="mb-8">
           <div className="text-xs font-medium uppercase tracking-widest text-gold">Restaurantes disponibles</div>
@@ -76,7 +85,11 @@ function RestaurantsPage() {
               <span className="font-heading font-semibold text-foreground">{selectedResto.name}</span>
             </div>
             <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
-              <Link to="/menu" search={{ r: selectedResto.id }}>
+              <Link
+                to="/menu"
+                search={{ r: selectedResto.id }}
+                onClick={() => setNavigatingTo(selectedResto.name)}
+              >
                 Ir al menú <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -96,7 +109,8 @@ function RestaurantsPage() {
                   to="/menu"
                   search={{ r: r.id }}
                   ref={isSelected ? selectedRef : undefined}
-                  className={`group relative block rounded-2xl border p-6 transition-all ${
+                  onClick={() => setNavigatingTo(r.name)}
+                  className={`group relative block rounded-2xl border p-6 transition-all active:scale-[0.99] ${
                     isSelected
                       ? "border-gold bg-card ring-2 ring-gold/40"
                       : "border-border bg-card hover:border-gold/60 hover:bg-card/80"
