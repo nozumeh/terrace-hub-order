@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import { CircuitGrid } from "@/components/CircuitGrid";
 import { ArrowRight, MousePointerClick, Bike, UtensilsCrossed, BadgePercent } from "lucide-react";
 import cityMarketHero640 from "@/assets/city-market-hero-640.jpg";
 import cityMarketHero1024 from "@/assets/city-market-hero-1024.jpg";
@@ -88,6 +89,7 @@ function Landing() {
 
       {/* How it works */}
       <section id="como-funciona" className="relative overflow-hidden border-b border-border py-20">
+        <CircuitGrid />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden"
@@ -122,6 +124,7 @@ function Landing() {
 
       {/* Employee discount banner */}
       <section className="relative overflow-hidden border-b border-border py-16">
+        <CircuitGrid />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
@@ -153,6 +156,7 @@ function Landing() {
 
       {/* Restaurants */}
       <section className="relative overflow-hidden border-b border-border py-20">
+        <CircuitGrid />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
