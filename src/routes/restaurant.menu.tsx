@@ -396,12 +396,67 @@ function ItemRow({
   onEdit: () => void; onDelete: () => void; onChange: () => void;
 }) {
   const [showExtras, setShowExtras] = useState(false);
+  const [stockEdit, setStockEdit] = useState<string | null>(null);
+
+  const toggleAvail = async () => {
+    const { error } = await supabase
+      .from("menu_items")
+      .update({ is_available: !item.is_available })
+      .eq("id", item.id);
+    if (error) { toast.error(error.message); return; }
+    onChange();
+  };
+
+  const saveStock = async () => {
+    const raw = stockEdit ?? "";
+    let val: number | null = null;
+    if (raw.trim() !== "") {
+      const n = parseInt(raw);
+      if (isNaN(n) || n < 0) { toast.error("Stock inválido"); return; }
+      val = n;
+    }
+    const { error } = await supabase
+      .from("menu_items")
+      .update({ stock_quantity: val })
+      .eq("id", item.id);
+    if (error) { toast.error(error.message); return; }
+    setStockEdit(null);
+    toast.success("Stock actualizado");
+    onChange();
+  };
+
+  const stockLabel = item.stock_quantity === null ? "∞" : String(item.stock_quantity);
   return (
     <li className="py-3">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1">
           <div className="font-medium">{item.name}</div>
-          <div className="text-xs text-muted-foreground">${Number(item.price).toFixed(2)} {!item.is_available && "· no disponible"}</div>
+          <div className="text-xs text-muted-foreground">
+            ${Number(item.price).toFixed(2)} · stock {stockLabel}
+            {!item.is_available && " · no disponible"}
+          </div>
+        </div>
+        {stockEdit !== null ? (
+          <div className="flex items-center gap-1">
+            <Input
+              type="number" min="0" value={stockEdit}
+              onChange={(e) => setStockEdit(e.target.value)}
+              placeholder="∞"
+              className="h-8 w-20"
+            />
+            <Button size="sm" onClick={saveStock}>OK</Button>
+            <Button size="sm" variant="ghost" onClick={() => setStockEdit(null)}>×</Button>
+          </div>
+        ) : (
+          <Button
+            size="sm" variant="outline"
+            onClick={() => setStockEdit(item.stock_quantity === null ? "" : String(item.stock_quantity))}
+          >
+            Stock: {stockLabel}
+          </Button>
+        )}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          Disponible <Switch checked={item.is_available} onCheckedChange={toggleAvail} />
         </div>
         <Button size="sm" variant="ghost" onClick={() => setShowExtras((s) => !s)}>
           Extras / removibles ({extras.length}/{removables.length})
