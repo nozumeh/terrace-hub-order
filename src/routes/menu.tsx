@@ -29,6 +29,7 @@ interface Item {
   category: string;
   category_id: string | null;
   is_available: boolean;
+  stock_quantity: number | null;
   image_url: string | null;
   options: string[] | null;
   menu_item_extras: Extra[];
@@ -51,24 +52,43 @@ function MenuPage() {
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
 
+  const fetchAll = async () => {
+    const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
+      supabase.from("restaurants").select("*").eq("is_active", true).order("name"),
+      supabase.from("menu_categories").select("*").order("sort_order"),
+      supabase
+        .from("menu_items")
+        .select("*, menu_item_extras(id,name,price), menu_item_removable_options(id,name)")
+        .eq("is_available", true)
+        .order("category"),
+    ]);
+    const rs = (r ?? []) as Restaurant[];
+    setRestaurants(rs);
+    setCategories((c ?? []) as Category[]);
+    setItems((m ?? []) as unknown as Item[]);
+    setActiveResto((prev) => prev ?? rs[0]?.id ?? null);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
-        supabase.from("restaurants").select("*").eq("is_active", true).order("name"),
-        supabase.from("menu_categories").select("*").order("sort_order"),
-        supabase
-          .from("menu_items")
-          .select("*, menu_item_extras(id,name,price), menu_item_removable_options(id,name)")
-          .eq("is_available", true)
-          .order("category"),
-      ]);
-      const rs = (r ?? []) as Restaurant[];
-      setRestaurants(rs);
-      setCategories((c ?? []) as Category[]);
-      setItems((m ?? []) as unknown as Item[]);
-      setActiveResto(rs[0]?.id ?? null);
-      setLoading(false);
-    })();
+    fetchAll();
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const debouncedRefetch = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => { fetchAll(); }, 300);
+    };
+    const channel = supabase
+      .channel("menu-public")
+      .on("postgres_changes", { event: "*", schema: "public", table: "menu_items" }, debouncedRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "menu_categories" }, debouncedRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "menu_item_extras" }, debouncedRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "menu_item_removable_options" }, debouncedRefetch)
+      .subscribe();
+    return () => {
+      if (t) clearTimeout(t);
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const restoItems = useMemo(() => items.filter((i) => i.restaurant_id === activeResto), [items, activeResto]);
@@ -213,7 +233,9 @@ function MenuPage() {
             {filtered.map((i) => {
               const price = Number(i.price);
               const discounted = Math.max(0, price - 1);
-              const unavailable = !i.is_available;
+              const outOfStock = i.stock_quantity !== null && i.stock_quantity <= 0;
+              const unavailable = !i.is_available || outOfStock;
+              const lowStock = i.stock_quantity !== null && i.stock_quantity > 0 && i.stock_quantity <= 5;
               return (
                 <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
                   <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-background">
@@ -225,6 +247,11 @@ function MenuPage() {
                     {unavailable && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/70">
                         <span className="rounded-md bg-destructive px-2 py-1 text-xs font-bold uppercase tracking-wider text-destructive-foreground">Agotado</span>
+                      </div>
+                    )}
+                    {!unavailable && lowStock && (
+                      <div className="absolute right-2 top-2 rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                        Quedan {i.stock_quantity}
                       </div>
                     )}
                   </div>
