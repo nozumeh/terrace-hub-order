@@ -56,10 +56,10 @@ function RegisterPage() {
       if (data.session) {
         const { error: setupErr } = await supabase.rpc("setup_account", {
           _account_type: tab,
-          _staff_role: tab === "employee" ? staffRole : null,
-          _business_name: tab === "restaurant_owner" ? businessName : null,
-          _business_description: tab === "restaurant_owner" ? businessDesc : null,
-          _business_phone: tab === "restaurant_owner" ? phone : null,
+          _staff_role: tab === "employee" ? staffRole : undefined,
+          _business_name: tab === "restaurant_owner" ? businessName : undefined,
+          _business_description: tab === "restaurant_owner" ? businessDesc : undefined,
+          _business_phone: tab === "restaurant_owner" ? phone : undefined,
         });
         if (setupErr) throw setupErr;
         toast.success("¡Bienvenido!");
