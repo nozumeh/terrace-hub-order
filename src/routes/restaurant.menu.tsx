@@ -29,6 +29,7 @@ interface Item {
   id: string; restaurant_id: string; category_id: string | null; category: string;
   name: string; description: string | null; price: number;
   image_url: string | null; is_available: boolean;
+  stock_quantity: number | null;
 }
 interface Extra { id: string; menu_item_id: string; name: string; price: number }
 interface Removable { id: string; menu_item_id: string; name: string }
@@ -241,6 +242,7 @@ function ItemsTab({
   const [imageUrl, setImageUrl] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [isAvailable, setIsAvailable] = useState(true);
+  const [stock, setStock] = useState<string>("");
 
   const grouped = useMemo(() => {
     const map: Record<string, Item[]> = {};
@@ -253,12 +255,14 @@ function ItemsTab({
 
   const startNew = () => {
     setEditing(null); setName(""); setDescription(""); setPrice("0"); setImageUrl("");
-    setCategoryId(categories[0]?.id ?? ""); setIsAvailable(true); setOpen(true);
+    setCategoryId(categories[0]?.id ?? ""); setIsAvailable(true); setStock(""); setOpen(true);
   };
   const startEdit = (it: Item) => {
     setEditing(it); setName(it.name); setDescription(it.description ?? "");
     setPrice(String(it.price)); setImageUrl(it.image_url ?? "");
-    setCategoryId(it.category_id ?? ""); setIsAvailable(it.is_available); setOpen(true);
+    setCategoryId(it.category_id ?? ""); setIsAvailable(it.is_available);
+    setStock(it.stock_quantity === null ? "" : String(it.stock_quantity));
+    setOpen(true);
   };
 
   const save = async () => {
@@ -266,6 +270,12 @@ function ItemsTab({
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) { toast.error("Precio inválido"); return; }
     const cat = categories.find((c) => c.id === categoryId);
+    let stockVal: number | null = null;
+    if (stock.trim() !== "") {
+      const n = parseInt(stock);
+      if (isNaN(n) || n < 0) { toast.error("Stock inválido"); return; }
+      stockVal = n;
+    }
     const payload = {
       restaurant_id: restaurantId,
       name: name.trim(),
@@ -275,6 +285,7 @@ function ItemsTab({
       category_id: categoryId || null,
       category: cat?.name ?? "Otros",
       is_available: isAvailable,
+      stock_quantity: stockVal,
     };
     const { error } = editing
       ? await supabase.from("menu_items").update(payload).eq("id", editing.id)
@@ -358,8 +369,14 @@ function ItemsTab({
               <label className="text-xs text-muted-foreground">URL de imagen</label>
               <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Switch checked={isAvailable} onCheckedChange={setIsAvailable} /> Disponible
+            <div className="grid grid-cols-2 items-end gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Stock (vacío = ilimitado)</label>
+                <Input type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="Sin control" />
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Switch checked={isAvailable} onCheckedChange={setIsAvailable} /> Disponible
+              </div>
             </div>
           </div>
           <DialogFooter>
