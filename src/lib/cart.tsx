@@ -24,6 +24,7 @@ export type AddCartInput = Omit<CartItem, "quantity" | "cart_key"> & { cart_key?
 interface CartCtx {
   items: CartItem[];
   add: (i: AddCartInput) => void;
+  update: (oldKey: string, i: AddCartInput) => void;
   setQty: (cartKey: string, qty: number) => void;
   remove: (cartKey: string) => void;
   clear: () => void;
@@ -90,11 +91,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const remove = (cartKey: string) => setItems((p) => p.filter((x) => x.cart_key !== cartKey));
   const clear = () => setItems([]);
 
+  const update: CartCtx["update"] = (oldKey, input) => {
+    const newKey = input.cart_key ?? buildCartKey(input);
+    setItems((prev) => {
+      const old = prev.find((p) => p.cart_key === oldKey);
+      if (!old) return prev;
+      const qty = old.quantity;
+      const withoutOld = prev.filter((p) => p.cart_key !== oldKey);
+      const collision = withoutOld.find((p) => p.cart_key === newKey);
+      if (collision) {
+        return withoutOld.map((p) =>
+          p.cart_key === newKey ? { ...p, quantity: p.quantity + qty } : p,
+        );
+      }
+      return [...withoutOld, { ...input, cart_key: newKey, quantity: qty }];
+    });
+  };
+
   const count = items.reduce((a, b) => a + b.quantity, 0);
   const subtotal = items.reduce((a, b) => a + b.unit_price * b.quantity, 0);
   const restaurantId = items[0]?.restaurant_id ?? null;
 
-  return <Ctx.Provider value={{ items, add, setQty, remove, clear, count, subtotal, restaurantId }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ items, add, update, setQty, remove, clear, count, subtotal, restaurantId }}>{children}</Ctx.Provider>;
 }
 
 export const useCart = () => {

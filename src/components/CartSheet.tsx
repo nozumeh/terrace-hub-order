@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/cart";
+import { useCart, type CartItem } from "@/lib/cart";
 import { useAuth, isEmployee } from "@/lib/auth";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Pencil } from "lucide-react";
+import { CartItemEditor } from "./CartItemEditor";
 
 export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (b: boolean) => void }) {
   const { items, setQty, remove, subtotal } = useCart();
@@ -14,6 +15,7 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
   const discount = employee && items.length > 0 ? 1 : 0;
   const total = Math.max(0, subtotal - discount);
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<CartItem | null>(null);
 
   const goCheckout = () => {
     setBusy(true);
@@ -50,9 +52,22 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                         </ul>
                       )}
                     </div>
-                    <button onClick={() => remove(i.cart_key)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-start gap-1">
+                      <button
+                        onClick={() => setEditing(i)}
+                        className="text-muted-foreground hover:text-gold"
+                        aria-label="Editar opciones"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => remove(i.cart_key)}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Quitar"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -91,6 +106,11 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
           </div>
         )}
       </SheetContent>
+      <CartItemEditor
+        item={editing}
+        open={!!editing}
+        onOpenChange={(b) => { if (!b) setEditing(null); }}
+      />
     </Sheet>
   );
 }
