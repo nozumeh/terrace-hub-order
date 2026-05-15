@@ -116,7 +116,16 @@ function RestaurantsPage() {
                   to="/menu"
                   search={{ r: r.id }}
                   ref={isSelected ? selectedRef : undefined}
-                  onClick={() => setNavigatingTo(r.name)}
+                  onClick={() => {
+                    setNavigatingTo(r.name);
+                    try {
+                      sessionStorage.setItem(
+                        "menu_nav_start",
+                        JSON.stringify({ t: performance.now(), name: r.name }),
+                      );
+                      performance.mark?.("menu-nav-start");
+                    } catch { /* ignore */ }
+                  }}
                   className={`group relative block rounded-2xl border p-6 transition-all active:scale-[0.99] ${
                     isSelected
                       ? "border-gold bg-card ring-2 ring-gold/40"
