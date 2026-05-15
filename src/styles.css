@@ -116,11 +116,6 @@
   @media (prefers-reduced-motion: reduce) {
     .cg-dash { animation: none; }
   }
-  @keyframes magic-shift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
   .magic-text {
     /* Outline puro: sin relleno, contorno fino dorado.
        El brillo "mágico" se logra con drop-shadow animado, no con relleno,
