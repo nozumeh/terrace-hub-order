@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Settings2, ChefHat } from "lucide-react";
+import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 
@@ -111,9 +111,20 @@ function RestaurantPanel() {
               <h1 className="font-heading text-3xl font-bold">Pedidos en curso</h1>
               <p className="mt-1 text-sm text-muted-foreground">Auto-refresco cada 30s</p>
             </div>
-            <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
-              <Link to="/restaurant/kitchen"><ChefHat className="h-3 w-3" /> Vista cocina</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link to="/restaurant/dashboard"><BarChart3 className="h-3 w-3" /> Resumen</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/restaurant/inventory"><Boxes className="h-3 w-3" /> Inventario</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/restaurant/runners"><Bike className="h-3 w-3" /> Food runners</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
+                <Link to="/restaurant/kitchen"><ChefHat className="h-3 w-3" /> Vista cocina</Link>
+              </Button>
+            </div>
           </div>
         </div>
 

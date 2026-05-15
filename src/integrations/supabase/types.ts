@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      food_runners: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string
+          restaurant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string
+          restaurant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string
+          restaurant_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -224,7 +254,9 @@ export type Database = {
           id: string
           notes: string | null
           order_number: number
+          out_for_delivery_at: string | null
           restaurant_id: string
+          runner_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_before_discount: number
           total_final: number
@@ -238,7 +270,9 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: number
+          out_for_delivery_at?: string | null
           restaurant_id: string
+          runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_before_discount: number
           total_final: number
@@ -252,7 +286,9 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: number
+          out_for_delivery_at?: string | null
           restaurant_id?: string
+          runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_before_discount?: number
           total_final?: number
@@ -270,29 +306,38 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           created_at: string
           email: string | null
           id: string
           is_employee: boolean
           name: string
+          phone: string | null
+          promo_code: string | null
           store_floor: string | null
           store_name: string | null
         }
         Insert: {
+          account_type?: string
           created_at?: string
           email?: string | null
           id: string
           is_employee?: boolean
           name?: string
+          phone?: string | null
+          promo_code?: string | null
           store_floor?: string | null
           store_name?: string | null
         }
         Update: {
+          account_type?: string
           created_at?: string
           email?: string | null
           id?: string
           is_employee?: boolean
           name?: string
+          phone?: string | null
+          promo_code?: string | null
           store_floor?: string | null
           store_name?: string | null
         }
@@ -300,31 +345,40 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          address: string | null
           created_at: string
           description: string | null
+          hours: string | null
           id: string
           is_active: boolean
           logo_url: string | null
           name: string
           owner_id: string | null
+          phone: string | null
         }
         Insert: {
+          address?: string | null
           created_at?: string
           description?: string | null
+          hours?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
           name: string
           owner_id?: string | null
+          phone?: string | null
         }
         Update: {
+          address?: string | null
           created_at?: string
           description?: string | null
+          hours?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
           name?: string
           owner_id?: string | null
+          phone?: string | null
         }
         Relationships: []
       }
@@ -354,13 +408,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_promo_code: { Args: never; Returns: string }
       import_menu_from_csv: {
         Args: { _items: Json; _restaurant_id: string }
         Returns: number
       }
+      setup_account: {
+        Args: {
+          _account_type: string
+          _business_description?: string
+          _business_name?: string
+          _business_phone?: string
+          _staff_role?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      app_role: "worker" | "supervisor" | "restaurant_owner" | "admin"
+      app_role:
+        | "worker"
+        | "supervisor"
+        | "restaurant_owner"
+        | "admin"
+        | "customer"
+        | "manager"
+        | "food_runner"
       order_status:
         | "pending"
         | "confirmed"
@@ -494,7 +566,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["worker", "supervisor", "restaurant_owner", "admin"],
+      app_role: [
+        "worker",
+        "supervisor",
+        "restaurant_owner",
+        "admin",
+        "customer",
+        "manager",
+        "food_runner",
+      ],
       order_status: [
         "pending",
         "confirmed",

@@ -2,7 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-export type Role = "worker" | "supervisor" | "restaurant_owner" | "admin";
+export type Role =
+  | "customer"
+  | "worker"
+  | "supervisor"
+  | "manager"
+  | "restaurant_owner"
+  | "food_runner"
+  | "admin";
 
 export interface Profile {
   id: string;
@@ -11,6 +18,9 @@ export interface Profile {
   store_name: string | null;
   store_floor: string | null;
   is_employee: boolean;
+  phone?: string | null;
+  promo_code?: string | null;
+  account_type?: "customer" | "employee" | "restaurant_owner" | null;
 }
 
 interface AuthCtx {
