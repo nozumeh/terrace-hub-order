@@ -95,7 +95,16 @@ function RestaurantsPage() {
               <Link
                 to="/menu"
                 search={{ r: selectedResto.id }}
-                onClick={() => setNavigatingTo(selectedResto.name)}
+                onClick={() => {
+                  setNavigatingTo(selectedResto.name);
+                  try {
+                    sessionStorage.setItem(
+                      "menu_nav_start",
+                      JSON.stringify({ t: performance.now(), name: selectedResto.name }),
+                    );
+                    performance.mark?.("menu-nav-start");
+                  } catch { /* ignore */ }
+                }}
               >
                 Ir al menú <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
