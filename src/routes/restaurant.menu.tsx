@@ -19,7 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ArrowLeft, Upload, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/restaurant/menu")({ component: MenuManager });
@@ -243,6 +243,7 @@ function ItemsTab({
   const [categoryId, setCategoryId] = useState<string>("");
   const [isAvailable, setIsAvailable] = useState(true);
   const [stock, setStock] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   const grouped = useMemo(() => {
     const map: Record<string, Item[]> = {};
@@ -300,6 +301,23 @@ function ItemsTab({
     const { error } = await supabase.from("menu_items").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Plato eliminado"); onChange();
+  };
+
+  const onPickFile = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("El archivo debe ser una imagen"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Máximo 5 MB"); return; }
+    setUploading(true);
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `${restaurantId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("menu-images")
+      .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+    if (upErr) { toast.error(upErr.message); setUploading(false); return; }
+    const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
+    setImageUrl(data.publicUrl);
+    setUploading(false);
+    toast.success("Imagen cargada");
   };
 
   const renderGroup = (catId: string, label: string, list: Item[]) => (
@@ -366,8 +384,48 @@ function ItemsTab({
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">URL de imagen</label>
-              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+              <label className="text-xs text-muted-foreground">Imagen del plato</label>
+              <div className="mt-1 flex items-start gap-3">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border border-border bg-background">
+                  {imageUrl ? (
+                    <>
+                      <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImageUrl("")}
+                        className="absolute right-1 top-1 rounded-full bg-background/90 p-0.5 text-muted-foreground hover:text-destructive"
+                        aria-label="Quitar imagen"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <ImageIcon className="h-6 w-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-muted">
+                    {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                    {uploading ? "Subiendo..." : "Subir imagen"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => { onPickFile(e.target.files?.[0] ?? null); e.target.value = ""; }}
+                    />
+                  </label>
+                  <Input
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="o pega una URL https://..."
+                    className="h-8 text-xs"
+                  />
+                  <p className="text-[10px] text-muted-foreground">JPG/PNG/WEBP · máx 5 MB</p>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-2 items-end gap-3">
               <div>
