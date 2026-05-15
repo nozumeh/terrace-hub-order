@@ -17,6 +17,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantMenuRouteImport } from './routes/restaurant.menu'
+import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitchen'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 
 const RestaurantRoute = RestaurantRouteImport.update({
@@ -59,6 +60,11 @@ const RestaurantMenuRoute = RestaurantMenuRouteImport.update({
   path: '/menu',
   getParentRoute: () => RestaurantRoute,
 } as any)
+const RestaurantKitchenRoute = RestaurantKitchenRouteImport.update({
+  id: '/kitchen',
+  path: '/kitchen',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
   id: '/orders/$id',
   path: '/orders/$id',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/kitchen'
     | '/restaurant/menu'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/kitchen'
     | '/restaurant/menu'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/kitchen'
     | '/restaurant/menu'
   fileRoutesById: FileRoutesById
 }
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantMenuRouteImport
       parentRoute: typeof RestaurantRoute
     }
+    '/restaurant/kitchen': {
+      id: '/restaurant/kitchen'
+      path: '/kitchen'
+      fullPath: '/restaurant/kitchen'
+      preLoaderRoute: typeof RestaurantKitchenRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
     '/orders/$id': {
       id: '/orders/$id'
       path: '/orders/$id'
@@ -215,10 +234,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface RestaurantRouteChildren {
+  RestaurantKitchenRoute: typeof RestaurantKitchenRoute
   RestaurantMenuRoute: typeof RestaurantMenuRoute
 }
 
 const RestaurantRouteChildren: RestaurantRouteChildren = {
+  RestaurantKitchenRoute: RestaurantKitchenRoute,
   RestaurantMenuRoute: RestaurantMenuRoute,
 }
 
@@ -239,3 +260,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
