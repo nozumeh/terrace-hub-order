@@ -19,7 +19,7 @@ interface Order {
   created_at: string;
 }
 interface Profile { id: string; name: string; email: string; store_name: string; is_employee: boolean }
-interface Restaurant { id: string; name: string; is_active: boolean }
+interface Restaurant { id: string; name: string; is_active: boolean; owner_id: string | null; description: string | null; phone: string | null; created_at: string }
 
 function AdminPage() {
   const { roles, loading } = useAuth();
@@ -38,7 +38,7 @@ function AdminPage() {
     const [{ data: o }, { data: p }, { data: r }] = await Promise.all([
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("restaurants").select("*").order("name"),
+      supabase.from("restaurants").select("id,name,is_active,owner_id,description,phone,created_at").order("created_at", { ascending: false }),
     ]);
     setOrders((o ?? []) as Order[]);
     setProfiles((p ?? []) as Profile[]);
@@ -81,7 +81,39 @@ function AdminPage() {
     else { toast.success("Actualizado"); refresh(); }
   };
 
+  const approveRestaurant = async (r: Restaurant) => {
+    const { error } = await supabase.from("restaurants").update({ is_active: true }).eq("id", r.id);
+    if (error) { toast.error(error.message); return; }
+    if (r.owner_id) {
+      await supabase.from("notifications").insert({
+        user_id: r.owner_id,
+        title: "¡Tu negocio fue aprobado!",
+        body: `${r.name} ya está activo en Terraza Gourmet City Market. Ya puedes recibir pedidos y publicar tu menú.`,
+        link: "/restaurant/dashboard",
+      });
+    }
+    toast.success("Restaurante aprobado");
+    refresh();
+  };
+
+  const rejectRestaurant = async (r: Restaurant) => {
+    if (!confirm(`¿Rechazar y eliminar la solicitud de "${r.name}"? Esta acción no se puede deshacer.`)) return;
+    const { error } = await supabase.from("restaurants").delete().eq("id", r.id);
+    if (error) { toast.error(error.message); return; }
+    if (r.owner_id) {
+      await supabase.from("notifications").insert({
+        user_id: r.owner_id,
+        title: "Tu solicitud de negocio fue rechazada",
+        body: `Tu solicitud para "${r.name}" no fue aprobada. Contacta al equipo de City Market para más detalles.`,
+      });
+    }
+    toast.success("Solicitud rechazada");
+    refresh();
+  };
+
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
+
+  const pendingRestaurants = restaurants.filter((r) => !r.is_active);
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,8 +128,44 @@ function AdminPage() {
           <Stat label="Pedidos hoy" value={todayOrders.length.toString()} />
           <Stat label="Revenue hoy" value={`$${revenue.toFixed(2)}`} />
           <Stat label="Restaurantes activos" value={restaurants.filter((r) => r.is_active).length.toString()} />
-          <Stat label="Pendientes" value={pending.toString()} highlight={pending > 5} />
+          <Stat label="Negocios por aprobar" value={pendingRestaurants.length.toString()} highlight={pendingRestaurants.length > 0} />
         </div>
+
+        {/* Pending business approvals */}
+        <section className="rounded-xl border border-gold/40 bg-card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="font-heading text-xl font-bold">Solicitudes de negocios</h2>
+              <p className="text-sm text-muted-foreground">Aprueba o rechaza los nuevos restaurantes registrados.</p>
+            </div>
+            <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-medium text-gold">{pendingRestaurants.length} pendientes</span>
+          </div>
+          {pendingRestaurants.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No hay solicitudes pendientes.</div>
+          ) : (
+            <ul className="space-y-3">
+              {pendingRestaurants.map((r) => (
+                <li key={r.id} className="rounded-lg border border-border bg-background p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0">
+                      <div className="font-heading text-lg font-semibold">{r.name}</div>
+                      {r.description && <div className="mt-1 text-sm text-muted-foreground">{r.description}</div>}
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        {r.phone && <span>📞 {r.phone}</span>}
+                        <span>Solicitado: {new Date(r.created_at).toLocaleDateString()}</span>
+                        <span>Dueño: {profiles.find((p) => p.id === r.owner_id)?.email ?? r.owner_id ?? "—"}</span>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <Button variant="outline" size="sm" onClick={() => rejectRestaurant(r)}>Rechazar</Button>
+                      <Button size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90" onClick={() => approveRestaurant(r)}>Aprobar y notificar</Button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         {/* Orders */}
         <section className="rounded-xl border border-border bg-card p-6">

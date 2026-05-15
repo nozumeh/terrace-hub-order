@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Save } from "lucide-react";
 import { toast } from "sonner";
+import { NotificationsBanner } from "@/components/NotificationsBanner";
 
 export const Route = createFileRoute("/restaurant/dashboard")({ component: Dashboard });
 
@@ -89,6 +90,7 @@ function Dashboard() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
+        <NotificationsBanner />
         <div className="flex items-center justify-between">
           <div>
             <Button asChild variant="ghost" size="sm"><Link to="/restaurant"><ArrowLeft className="h-3 w-3" /> Volver</Link></Button>
