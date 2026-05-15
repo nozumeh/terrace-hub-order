@@ -31,19 +31,19 @@ function RestaurantPanel() {
   const [editingPrice, setEditingPrice] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!loading && !roles.includes("restaurant_owner") && !roles.includes("admin")) navigate({ to: "/" });
+    if (!loading && !roles.includes("restaurant_owner")) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
     if (!user) return;
     let rid = restaurantId;
     if (!rid) {
-      const { data: r } = await supabase.from("restaurants").select("id").eq("owner_id", user.id).maybeSingle();
-      // admin fallback: pick first restaurant
-      if (!r && roles.includes("admin")) {
-        const { data: anyR } = await supabase.from("restaurants").select("id").limit(1).maybeSingle();
-        rid = anyR?.id ?? null;
-      } else rid = r?.id ?? null;
+      const { data: r } = await supabase
+        .from("restaurants")
+        .select("id")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+      rid = r?.id ?? null;
       setRestaurantId(rid);
     }
     if (!rid) { setBusy(false); return; }
@@ -65,7 +65,7 @@ function RestaurantPanel() {
   };
 
   useEffect(() => {
-    if (user && (roles.includes("restaurant_owner") || roles.includes("admin"))) refresh();
+    if (user && roles.includes("restaurant_owner")) refresh();
     const interval = setInterval(() => { refresh(); }, 30000);
     return () => clearInterval(interval);
   }, [user, roles]);
