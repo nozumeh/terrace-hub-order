@@ -61,6 +61,7 @@ function MenuPage() {
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
   const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
+  const [navMs, setNavMs] = useState<number | null>(null);
 
   const fetchAll = async () => {
     const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
@@ -119,6 +120,27 @@ function MenuPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Measure tap → menu render time (set by /restaurants on click)
+  useEffect(() => {
+    if (loading) return;
+    try {
+      const raw = sessionStorage.getItem("menu_nav_start");
+      if (!raw) return;
+      const { t, name } = JSON.parse(raw) as { t: number; name?: string };
+      const ms = Math.round(performance.now() - t);
+      sessionStorage.removeItem("menu_nav_start");
+      try {
+        performance.mark?.("menu-rendered");
+        performance.measure?.("menu-tap-to-render", "menu-nav-start", "menu-rendered");
+      } catch { /* ignore */ }
+      // eslint-disable-next-line no-console
+      console.info(`[perf] menu tap→render: ${ms}ms${name ? ` (${name})` : ""}`);
+      setNavMs(ms);
+      const hide = setTimeout(() => setNavMs(null), 4000);
+      return () => clearTimeout(hide);
+    } catch { /* ignore */ }
+  }, [loading]);
 
   const restoItems = useMemo(() => items.filter((i) => i.restaurant_id === activeResto), [items, activeResto]);
   const restoCategories = useMemo(
@@ -207,6 +229,11 @@ function MenuPage() {
       <CartSheet open={cartOpen} onOpenChange={setCartOpen} />
 
       <div className="mx-auto max-w-6xl px-4 py-6 animate-fade-in">
+        {navMs !== null && import.meta.env.DEV && (
+          <div className="pointer-events-none fixed bottom-4 right-4 z-50 rounded-full border border-gold/40 bg-background/95 px-3 py-1.5 text-[11px] font-mono text-muted-foreground shadow-lg backdrop-blur animate-fade-in">
+            tap→render: <span className={navMs > 1500 ? "text-destructive" : navMs > 800 ? "text-gold" : "text-success"}>{navMs}ms</span>
+          </div>
+        )}
         <Link
           to="/restaurants"
           search={activeResto ? { selected: activeResto } : undefined}
