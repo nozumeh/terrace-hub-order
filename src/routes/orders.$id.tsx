@@ -19,6 +19,8 @@ interface Order {
   id: string; order_number: number; status: string; total_final: number;
   delivery_store: string; delivery_floor: string; restaurant_id: string;
   notes: string;
+  out_for_delivery_at: string | null;
+  delivered_at: string | null;
 }
 interface ItemCustomizations {
   base_price?: number;
@@ -34,6 +36,8 @@ function OrderStatus() {
   const [items, setItems] = useState<Item[]>([]);
   const [restaurantName, setRestaurantName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [avgFloorSeconds, setAvgFloorSeconds] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     const load = async () => {
@@ -47,6 +51,26 @@ function OrderStatus() {
       setItems((it ?? []) as Item[]);
       setRestaurantName(r?.name ?? "");
       setLoading(false);
+
+      // Compute average delivery seconds for the same restaurant + floor
+      // using the last 20 delivered orders. RLS may hide rows; fallback to default.
+      const { data: hist } = await supabase
+        .from("orders")
+        .select("out_for_delivery_at, delivered_at")
+        .eq("restaurant_id", o.restaurant_id)
+        .eq("delivery_floor", o.delivery_floor)
+        .not("out_for_delivery_at", "is", null)
+        .not("delivered_at", "is", null)
+        .order("delivered_at", { ascending: false })
+        .limit(20);
+      if (hist && hist.length) {
+        const samples = hist
+          .map((h) => (new Date(h.delivered_at as string).getTime() - new Date(h.out_for_delivery_at as string).getTime()) / 1000)
+          .filter((s) => s > 30 && s < 60 * 60); // 30s..1h sane window
+        if (samples.length) {
+          setAvgFloorSeconds(samples.reduce((a, b) => a + b, 0) / samples.length);
+        }
+      }
     };
     load();
 
@@ -61,10 +85,36 @@ function OrderStatus() {
     return () => { supabase.removeChannel(ch); };
   }, [id]);
 
+  // Tick every 15s only while in transit
+  useEffect(() => {
+    if (order?.status !== "on_the_way") return;
+    const t = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(t);
+  }, [order?.status]);
+
   if (loading) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
   if (!order) return <div className="min-h-screen bg-background"><Header /><div className="px-4 py-20 text-center text-muted-foreground">Pedido no encontrado</div></div>;
 
   const currentIdx = STEPS.findIndex((s) => s.key === order.status);
+
+  // ETA: defaults to 8 min when no historical data
+  const DEFAULT_ETA_SEC = 8 * 60;
+  const etaSec = avgFloorSeconds ?? DEFAULT_ETA_SEC;
+  const startedAtMs = order.out_for_delivery_at ? new Date(order.out_for_delivery_at).getTime() : null;
+  const remainingSec = startedAtMs !== null ? Math.round((startedAtMs + etaSec * 1000 - now) / 1000) : null;
+  const etaLabel = (() => {
+    if (order.status === "delivered") return "Entregado";
+    if (order.status !== "on_the_way" || remainingSec === null) {
+      const m = Math.round(etaSec / 60);
+      return `${m}-${m + 5} minutos`;
+    }
+    if (remainingSec > 60) return `Llega en ~${Math.ceil(remainingSec / 60)} min`;
+    if (remainingSec > 0) return `Llega en menos de 1 min`;
+    return `Llegará pronto · +${Math.abs(Math.floor(remainingSec / 60))} min`;
+  })();
+  const etaTone = order.status === "on_the_way" && remainingSec !== null && remainingSec < 0
+    ? "text-destructive"
+    : "text-foreground";
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,7 +122,12 @@ function OrderStatus() {
       <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="text-xs uppercase tracking-widest text-muted-foreground">Pedido</div>
         <h1 className="mt-1 font-heading text-3xl font-bold">#{String(order.order_number).padStart(4, "0")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{restaurantName} · Tiempo estimado: <span className="text-foreground">15-20 minutos</span></p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {restaurantName} · Tiempo estimado: <span className={etaTone}>{etaLabel}</span>
+          {avgFloorSeconds !== null && (
+            <span className="ml-1 text-xs text-muted-foreground/70">(promedio piso {order.delivery_floor})</span>
+          )}
+        </p>
 
         {/* Stepper */}
         <div className="mt-8 rounded-xl border border-border bg-card p-6">
