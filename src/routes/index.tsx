@@ -68,7 +68,7 @@ function Landing() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 flex select-none items-end justify-center overflow-hidden"
         >
-          <span className="font-heading text-[22vw] font-black uppercase leading-[0.85] tracking-tighter text-transparent [-webkit-text-stroke:1px_hsl(var(--gold)/0.25)] md:[-webkit-text-stroke:2px_hsl(var(--gold)/0.22)]">
+          <span className="font-heading text-[22vw] font-black uppercase leading-[0.85] tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_28%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_25%,transparent)]">
             Tecnología
           </span>
         </div>
@@ -127,7 +127,7 @@ function Landing() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
         >
-          <span className="font-heading text-[20vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_hsl(var(--gold)/0.18)] md:[-webkit-text-stroke:2px_hsl(var(--gold)/0.16)]">
+          <span className="font-heading text-[20vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_20%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_18%,transparent)]">
             Innovación
           </span>
         </div>
@@ -158,7 +158,7 @@ function Landing() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
         >
-          <span className="font-heading text-[22vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_hsl(var(--gold)/0.18)] md:[-webkit-text-stroke:2px_hsl(var(--gold)/0.16)]">
+          <span className="font-heading text-[22vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_20%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_18%,transparent)]">
             Calidad
           </span>
         </div>
