@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Bell, Check, X } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Notification {
@@ -56,9 +55,9 @@ export function NotificationsBanner() {
               <div className="font-semibold">{n.title}</div>
               {n.body && <div className="text-sm text-muted-foreground">{n.body}</div>}
               {n.link && (
-                <Button asChild variant="link" className="h-auto p-0 text-gold">
-                  <Link to={n.link as never}>Ver detalles →</Link>
-                </Button>
+                <a href={n.link} className="mt-1 inline-block text-sm font-medium text-gold hover:underline">
+                  Ver detalles →
+                </a>
               )}
             </div>
           </div>
