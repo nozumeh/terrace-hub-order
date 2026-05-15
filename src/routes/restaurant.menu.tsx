@@ -35,7 +35,7 @@ interface Extra { id: string; menu_item_id: string; name: string; price: number 
 interface Removable { id: string; menu_item_id: string; name: string }
 
 function MenuManager() {
-  const { user, roles, loading } = useAuth();
+  const { user, roles, loading, isRestaurantOwner } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
@@ -45,7 +45,7 @@ function MenuManager() {
   const [removables, setRemovables] = useState<Removable[]>([]);
 
   useEffect(() => {
-    if (!loading && !roles.includes("restaurant_owner")) navigate({ to: "/" });
+    if (!loading && !isRestaurantOwner) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
@@ -85,7 +85,7 @@ function MenuManager() {
   };
 
   useEffect(() => {
-    if (user && roles.includes("restaurant_owner")) refresh();
+    if (user && isRestaurantOwner) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, roles]);
 
@@ -94,6 +94,17 @@ function MenuManager() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div>
+      </div>
+    );
+  }
+
+  if (!isRestaurantOwner) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="mx-auto max-w-3xl p-8 text-center text-muted-foreground">
+          No tienes permisos para gestionar el menú.
+        </div>
       </div>
     );
   }
