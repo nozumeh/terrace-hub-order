@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 
@@ -144,9 +144,14 @@ function RestaurantPanel() {
         <section className="rounded-xl border border-border bg-card p-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="font-heading text-xl font-bold">Menú</h2>
-            <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="h-3 w-3" /> Importar CSV
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
+                <Link to="/restaurant/menu"><Settings2 className="h-3 w-3" /> Gestionar menú</Link>
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-3 w-3" /> Importar CSV
+              </Button>
+            </div>
           </div>
           {restaurantId && (
             <CsvImportDialog
