@@ -413,6 +413,16 @@ export type Database = {
         Args: { _items: Json; _restaurant_id: string }
         Returns: number
       }
+      setup_account: {
+        Args: {
+          _account_type: string
+          _business_description?: string
+          _business_name?: string
+          _business_phone?: string
+          _staff_role?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
