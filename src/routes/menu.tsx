@@ -107,7 +107,16 @@ function MenuPage() {
       setCustomizeItem(i);
       return;
     }
-    add({ menu_item_id: i.id, restaurant_id: i.restaurant_id, name: i.name, unit_price: Number(i.price) });
+    add({
+      menu_item_id: i.id,
+      restaurant_id: i.restaurant_id,
+      name: i.name,
+      base_price: Number(i.price),
+      unit_price: Number(i.price),
+      variant: null,
+      extras: [],
+      removed: [],
+    });
     toast.success(`${i.name} agregado`);
   };
 
@@ -129,26 +138,17 @@ function MenuPage() {
     const extras = (customizeItem.menu_item_extras ?? []).filter((e) => chosenExtras.has(e.id));
     const removed = (customizeItem.menu_item_removable_options ?? []).filter((r) => chosenRemoved.has(r.id));
     const extrasPrice = extras.reduce((a, e) => a + Number(e.price), 0);
-    const idParts = [customizeItem.id];
-    const nameParts: string[] = [];
-    if (variantChoice) { idParts.push(variantChoice); nameParts.push(variantChoice); }
-    if (extras.length) {
-      idParts.push("e:" + extras.map((e) => e.id).sort().join(","));
-      nameParts.push("+ " + extras.map((e) => e.name).join(", "));
-    }
-    if (removed.length) {
-      idParts.push("r:" + removed.map((r) => r.id).sort().join(","));
-      nameParts.push("sin " + removed.map((r) => r.name).join(", "));
-    }
-    const composedId = idParts.join("::");
-    const composedName = nameParts.length ? `${customizeItem.name} — ${nameParts.join(" · ")}` : customizeItem.name;
     add({
-      menu_item_id: composedId,
+      menu_item_id: customizeItem.id,
       restaurant_id: customizeItem.restaurant_id,
-      name: composedName,
+      name: customizeItem.name,
+      base_price: Number(customizeItem.price),
       unit_price: Number(customizeItem.price) + extrasPrice,
+      variant: variantChoice || null,
+      extras: extras.map((e) => ({ id: e.id, name: e.name, price: Number(e.price) })),
+      removed: removed.map((r) => ({ id: r.id, name: r.name })),
     });
-    toast.success(`${composedName} agregado`);
+    toast.success(`${customizeItem.name} agregado`);
     closeCustomize();
   };
 
