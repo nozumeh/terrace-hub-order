@@ -52,7 +52,16 @@ function RestaurantsPage() {
   }, []);
 
   const selectedResto = useMemo(
-    () => (selected ? restaurants.find((r) => r.id === selected) ?? null : null),
+    () => {
+      if (!selected) return null;
+      const norm = selected.trim().toLowerCase();
+      return (
+        restaurants.find((r) => r.id === selected) ??
+        restaurants.find((r) => r.name.toLowerCase() === norm) ??
+        restaurants.find((r) => r.name.toLowerCase().includes(norm)) ??
+        null
+      );
+    },
     [selected, restaurants],
   );
 

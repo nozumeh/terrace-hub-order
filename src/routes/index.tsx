@@ -176,7 +176,7 @@ function Landing() {
 
 function RestoCard({ name, tag, desc, logo }: { name: string; tag: string; desc: string; logo?: string }) {
   return (
-    <Link to="/restaurants" className="group block rounded-xl border border-border bg-card p-6 transition-all hover:border-gold/50 hover:bg-card/80">
+    <Link to="/restaurants" search={{ selected: name }} className="group block rounded-xl border border-border bg-card p-6 transition-all hover:border-gold/50 hover:bg-card/80">
       <div className="flex items-start justify-between">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">{tag}</div>
