@@ -92,9 +92,9 @@ function Landing() {
         <CircuitGrid />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden"
+          className="pointer-events-none absolute inset-0 flex select-none items-end justify-center overflow-hidden md:items-center"
         >
-          <span className="font-heading text-[22vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_28%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_25%,transparent)]">
+          <span className="magic-text font-heading text-[28vw] font-black uppercase leading-[0.8] tracking-tighter opacity-25 translate-y-[18%] sm:text-[24vw] sm:translate-y-[10%] md:text-[22vw] md:translate-y-0 md:opacity-40">
             Tecnología
           </span>
         </div>
@@ -129,7 +129,7 @@ function Landing() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
         >
-          <span className="font-heading text-[20vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_20%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_18%,transparent)]">
+          <span className="magic-text font-heading text-[26vw] font-black uppercase leading-[0.8] tracking-tighter opacity-20 sm:text-[22vw] md:text-[20vw] md:opacity-30">
             Innovación
           </span>
         </div>
@@ -159,9 +159,9 @@ function Landing() {
         <CircuitGrid />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
+          className="pointer-events-none absolute inset-0 flex items-end justify-center overflow-hidden md:items-center"
         >
-          <span className="font-heading text-[22vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_20%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_18%,transparent)]">
+          <span className="magic-text font-heading text-[28vw] font-black uppercase leading-[0.8] tracking-tighter opacity-25 translate-y-[18%] sm:text-[24vw] sm:translate-y-[10%] md:text-[22vw] md:translate-y-0 md:opacity-35">
             Calidad
           </span>
         </div>
