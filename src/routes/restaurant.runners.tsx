@@ -8,13 +8,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Plus, Trash2, Bike } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Trash2, Bike, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/restaurant/runners")({ component: RunnersPage });
 
 interface Runner { id: string; name: string; phone: string; is_active: boolean }
-interface Order { id: string; order_number: number; status: string; runner_id: string | null; delivery_store: string; delivery_floor: string }
+interface Order { id: string; order_number: number; status: string; runner_id: string | null; delivery_store: string; delivery_floor: string; out_for_delivery_at: string | null }
+
+const STATUS_LABEL: Record<string, string> = {
+  preparing: "En preparación",
+  on_the_way: "En camino",
+  delivered: "Entregado",
+};
+const STATUS_TONE: Record<string, string> = {
+  preparing: "bg-muted text-muted-foreground",
+  on_the_way: "bg-gold/15 text-gold",
+  delivered: "bg-success/15 text-success",
+};
 
 function RunnersPage() {
   const { user, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
@@ -35,7 +46,13 @@ function RunnersPage() {
     setRestaurantId(r.id);
     const [{ data: rn }, { data: o }] = await Promise.all([
       supabase.from("food_runners").select("*").eq("restaurant_id", r.id).order("created_at", { ascending: false }),
-      supabase.from("orders").select("id,order_number,status,runner_id,delivery_store,delivery_floor").eq("restaurant_id", r.id).in("status", ["preparing", "on_the_way"]).order("created_at"),
+      supabase
+        .from("orders")
+        .select("id,order_number,status,runner_id,delivery_store,delivery_floor,out_for_delivery_at,created_at")
+        .eq("restaurant_id", r.id)
+        .in("status", ["preparing", "on_the_way", "delivered"])
+        .gte("created_at", new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
+        .order("created_at"),
     ]);
     setRunners((rn ?? []) as Runner[]);
     setOrders((o ?? []) as Order[]);
@@ -82,6 +99,13 @@ function RunnersPage() {
     else { toast.success("Pedido asignado"); load(); }
   };
 
+  const markDelivered = async (orderId: string) => {
+    if (!requireRestaurantOwner()) return;
+    const { error } = await supabase.from("orders").update({ status: "delivered" as never }).eq("id", orderId);
+    if (error) toast.error(error.message);
+    else { toast.success("Pedido entregado"); load(); }
+  };
+
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
 
   return (
@@ -115,26 +139,47 @@ function RunnersPage() {
         </section>
 
         <section className="rounded-xl border border-border bg-card p-6">
-          <h2 className="mb-4 font-heading text-lg font-bold">Pedidos para asignar</h2>
+          <h2 className="mb-1 font-heading text-lg font-bold">Pedidos en despacho</h2>
+          <p className="mb-4 text-xs text-muted-foreground">Asigna repartidor, sigue el estado y confirma la entrega. Se muestran los de las últimas 6 h.</p>
           {orders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay pedidos en preparación o en camino.</p>
+            <p className="text-sm text-muted-foreground">No hay pedidos activos.</p>
           ) : (
             <ul className="divide-y divide-border">
-              {orders.map((o) => (
-                <li key={o.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-mono font-bold">#{String(o.order_number).padStart(4, "0")}</div>
-                    <div className="text-xs text-muted-foreground">{o.delivery_store} · Piso {o.delivery_floor} · {o.status}</div>
-                  </div>
-                  <Select value={o.runner_id ?? "none"} onValueChange={(v) => assign(o.id, v)}>
-                    <SelectTrigger className="w-56"><SelectValue placeholder="Asignar runner" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin asignar</SelectItem>
-                      {runners.filter((r) => r.is_active).map((r) => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </li>
-              ))}
+              {orders.map((o) => {
+                const elapsed = o.out_for_delivery_at
+                  ? Math.floor((Date.now() - new Date(o.out_for_delivery_at).getTime()) / 60000)
+                  : null;
+                return (
+                  <li key={o.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="font-mono font-bold">#{String(o.order_number).padStart(4, "0")}</div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${STATUS_TONE[o.status] ?? "bg-muted text-muted-foreground"}`}>
+                          {STATUS_LABEL[o.status] ?? o.status}
+                        </span>
+                        {elapsed !== null && o.status === "on_the_way" && (
+                          <span className="text-[11px] text-muted-foreground">{elapsed} min en ruta</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{o.delivery_store} · Piso {o.delivery_floor}</div>
+                    </div>
+                    {o.status !== "delivered" && (
+                      <Select value={o.runner_id ?? "none"} onValueChange={(v) => assign(o.id, v)}>
+                        <SelectTrigger className="w-52"><SelectValue placeholder="Asignar runner" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sin asignar</SelectItem>
+                          {runners.filter((r) => r.is_active).map((r) => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {o.status === "on_the_way" && (
+                      <Button size="sm" className="bg-success text-primary-foreground hover:bg-success/90" onClick={() => markDelivered(o.id)}>
+                        <Check className="mr-1 h-3 w-3" /> Entregado
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
