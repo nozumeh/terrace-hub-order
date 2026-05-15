@@ -13,6 +13,7 @@ import { Route as RestaurantRouteImport } from './routes/restaurant'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
@@ -39,6 +40,11 @@ const MenuRoute = MenuRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployeeRoute = EmployeeRouteImport.update({
+  id: '/employee',
+  path: '/employee',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/checkout'
+    | '/employee'
     | '/login'
     | '/menu'
     | '/register'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/checkout'
+    | '/employee'
     | '/login'
     | '/menu'
     | '/register'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/checkout'
+    | '/employee'
     | '/login'
     | '/menu'
     | '/register'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRoute
   CheckoutRoute: typeof CheckoutRoute
+  EmployeeRoute: typeof EmployeeRoute
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
   RegisterRoute: typeof RegisterRoute
@@ -199,6 +212,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employee': {
+      id: '/employee'
+      path: '/employee'
+      fullPath: '/employee'
+      preLoaderRoute: typeof EmployeeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -272,6 +292,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AdminRoute: AdminRoute,
   CheckoutRoute: CheckoutRoute,
+  EmployeeRoute: EmployeeRoute,
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
   RegisterRoute: RegisterRoute,
