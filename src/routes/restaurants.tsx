@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, UtensilsCrossed, Loader2, Clock } from "lucide-react";
+import { ArrowRight, UtensilsCrossed, Loader2, Clock, Check } from "lucide-react";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
+
+type RestaurantsSearch = { selected?: string };
 
 export const Route = createFileRoute("/restaurants")({
   component: RestaurantsPage,
+  validateSearch: (s: Record<string, unknown>): RestaurantsSearch => ({
+    selected: typeof s.selected === "string" ? s.selected : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Restaurantes — Terraza Gourmet City Market" },
@@ -20,8 +26,10 @@ export const Route = createFileRoute("/restaurants")({
 interface Restaurant { id: string; name: string; description: string; is_active: boolean }
 
 function RestaurantsPage() {
+  const { selected } = Route.useSearch();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     supabase
@@ -35,6 +43,18 @@ function RestaurantsPage() {
       });
   }, []);
 
+  const selectedResto = useMemo(
+    () => (selected ? restaurants.find((r) => r.id === selected) ?? null : null),
+    [selected, restaurants],
+  );
+
+  // Smoothly scroll the previously selected restaurant into view
+  useEffect(() => {
+    if (selectedResto && selectedRef.current) {
+      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [selectedResto]);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <Header />
@@ -47,19 +67,46 @@ function RestaurantsPage() {
           </p>
         </div>
 
+        {/* Quick continue with previously selected */}
+        {selectedResto && (
+          <div className="mb-6 flex flex-col items-start gap-3 rounded-xl border border-gold/40 bg-gold/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Check className="h-4 w-4 text-gold" />
+              <span className="text-muted-foreground">Continuar con</span>
+              <span className="font-heading font-semibold text-foreground">{selectedResto.name}</span>
+            </div>
+            <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
+              <Link to="/menu" search={{ r: selectedResto.id }}>
+                Ir al menú <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {restaurants.map((r) => {
               const isCapital = r.name.toLowerCase().includes("capital burgers");
+              const isSelected = r.id === selected;
               return (
                 <Link
                   key={r.id}
                   to="/menu"
                   search={{ r: r.id }}
-                  className="group block rounded-2xl border border-border bg-card p-6 transition-all hover:border-gold/60 hover:bg-card/80"
+                  ref={isSelected ? selectedRef : undefined}
+                  className={`group relative block rounded-2xl border p-6 transition-all ${
+                    isSelected
+                      ? "border-gold bg-card ring-2 ring-gold/40"
+                      : "border-border bg-card hover:border-gold/60 hover:bg-card/80"
+                  }`}
                 >
+                  {isSelected && (
+                    <span className="absolute -top-2 left-4 inline-flex items-center gap-1 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                      <Check className="h-3 w-3" /> Seleccionado
+                    </span>
+                  )}
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="text-xs uppercase tracking-widest text-muted-foreground">Restaurante</div>
@@ -80,7 +127,8 @@ function RestaurantsPage() {
                   </div>
                   <p className="mt-4 line-clamp-3 text-sm text-muted-foreground">{r.description}</p>
                   <div className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-gold">
-                    Ver menú <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    {isSelected ? "Continuar al menú" : "Ver menú"}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Link>
               );
