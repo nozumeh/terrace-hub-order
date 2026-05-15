@@ -278,6 +278,7 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          delivered_at: string | null
           delivery_floor: string
           delivery_store: string
           discount_applied: number
@@ -294,6 +295,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
           discount_applied?: number
@@ -310,6 +312,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
           discount_applied?: number
@@ -438,6 +441,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      avg_delivery_seconds_for_floor: {
+        Args: { _floor: string; _restaurant_id: string }
+        Returns: number
+      }
       generate_promo_code: { Args: never; Returns: string }
       import_menu_from_csv: {
         Args: { _items: Json; _restaurant_id: string }
