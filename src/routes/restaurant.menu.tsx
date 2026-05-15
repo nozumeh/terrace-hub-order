@@ -597,8 +597,10 @@ function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Ex
 }
 
 function RemovablesEditor({ itemId, removables, onChange }: { itemId: string; removables: Removable[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [name, setName] = useState("");
   const add = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) return;
     const { error } = await supabase.from("menu_item_removable_options").insert({
       menu_item_id: itemId, name: name.trim(),
@@ -607,6 +609,7 @@ function RemovablesEditor({ itemId, removables, onChange }: { itemId: string; re
     setName(""); onChange();
   };
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_item_removable_options").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     onChange();
