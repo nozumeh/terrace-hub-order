@@ -116,27 +116,30 @@
   @media (prefers-reduced-motion: reduce) {
     .cg-dash { animation: none; }
   }
-  @keyframes magic-shift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
   .magic-text {
-    background-image: linear-gradient(
-      110deg,
-      color-mix(in oklab, var(--gold) 90%, transparent) 0%,
-      oklch(0.78 0.20 320) 30%,
-      oklch(0.82 0.18 220) 55%,
-      oklch(0.85 0.18 160) 75%,
-      color-mix(in oklab, var(--gold) 90%, transparent) 100%
-    );
-    background-size: 220% 220%;
-    -webkit-background-clip: text;
-    background-clip: text;
+    /* Outline puro: sin relleno, contorno fino dorado.
+       El brillo "mágico" se logra con drop-shadow animado, no con relleno,
+       para no competir con el texto principal. */
     color: transparent;
     -webkit-text-fill-color: transparent;
-    animation: magic-shift 12s ease-in-out infinite;
-    filter: drop-shadow(0 0 28px color-mix(in oklab, var(--gold) 18%, transparent));
+    -webkit-text-stroke: 1px color-mix(in oklab, var(--gold) 32%, transparent);
+    filter:
+      drop-shadow(0 0 14px color-mix(in oklab, var(--gold) 14%, transparent))
+      drop-shadow(0 0 32px color-mix(in oklab, oklch(0.78 0.20 320) 8%, transparent));
+    animation: magic-shift 14s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .magic-text {
+      -webkit-text-stroke: 1.5px color-mix(in oklab, var(--gold) 38%, transparent);
+    }
+  }
+  @keyframes magic-shift {
+    0%, 100% { filter:
+      drop-shadow(0 0 14px color-mix(in oklab, var(--gold) 14%, transparent))
+      drop-shadow(0 0 32px color-mix(in oklab, oklch(0.78 0.20 320) 8%, transparent)); }
+    50% { filter:
+      drop-shadow(0 0 18px color-mix(in oklab, oklch(0.85 0.18 160) 14%, transparent))
+      drop-shadow(0 0 36px color-mix(in oklab, oklch(0.82 0.18 220) 10%, transparent)); }
   }
   @media (prefers-reduced-motion: reduce) {
     .magic-text { animation: none; }
