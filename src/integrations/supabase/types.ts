@@ -348,13 +348,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       import_menu_from_csv: {
         Args: { _items: Json; _restaurant_id: string }
         Returns: number
