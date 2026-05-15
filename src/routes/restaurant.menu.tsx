@@ -471,10 +471,12 @@ function ItemRow({
   item: Item; extras: Extra[]; removables: Removable[];
   onEdit: () => void; onDelete: () => void; onChange: () => void;
 }) {
+  const { requireRestaurantOwner } = useAuth();
   const [showExtras, setShowExtras] = useState(false);
   const [stockEdit, setStockEdit] = useState<string | null>(null);
 
   const toggleAvail = async () => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase
       .from("menu_items")
       .update({ is_available: !item.is_available })
@@ -484,6 +486,7 @@ function ItemRow({
   };
 
   const saveStock = async () => {
+    if (!requireRestaurantOwner()) return;
     const raw = stockEdit ?? "";
     let val: number | null = null;
     if (raw.trim() !== "") {
@@ -551,9 +554,11 @@ function ItemRow({
 }
 
 function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Extra[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("0");
   const add = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) return;
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) { toast.error("Precio inválido"); return; }
@@ -564,6 +569,7 @@ function ExtrasEditor({ itemId, extras, onChange }: { itemId: string; extras: Ex
     setName(""); setPrice("0"); onChange();
   };
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_item_extras").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     onChange();
