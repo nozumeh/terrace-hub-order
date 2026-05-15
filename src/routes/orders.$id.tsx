@@ -52,25 +52,12 @@ function OrderStatus() {
       setRestaurantName(r?.name ?? "");
       setLoading(false);
 
-      // Compute average delivery seconds for the same restaurant + floor
-      // using the last 20 delivered orders. RLS may hide rows; fallback to default.
-      const { data: hist } = await supabase
-        .from("orders")
-        .select("out_for_delivery_at, delivered_at")
-        .eq("restaurant_id", o.restaurant_id)
-        .eq("delivery_floor", o.delivery_floor)
-        .not("out_for_delivery_at", "is", null)
-        .not("delivered_at", "is", null)
-        .order("delivered_at", { ascending: false })
-        .limit(20);
-      if (hist && hist.length) {
-        const samples = hist
-          .map((h) => (new Date(h.delivered_at as string).getTime() - new Date(h.out_for_delivery_at as string).getTime()) / 1000)
-          .filter((s) => s > 30 && s < 60 * 60); // 30s..1h sane window
-        if (samples.length) {
-          setAvgFloorSeconds(samples.reduce((a, b) => a + b, 0) / samples.length);
-        }
-      }
+      // Promedio agregado (RLS-bypass vía RPC SECURITY DEFINER, devuelve solo un número)
+      const { data: avg } = await supabase.rpc("avg_delivery_seconds_for_floor", {
+        _restaurant_id: o.restaurant_id,
+        _floor: o.delivery_floor,
+      });
+      if (typeof avg === "number") setAvgFloorSeconds(avg);
     };
     load();
 
