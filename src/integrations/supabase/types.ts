@@ -14,9 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      menu_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          restaurant_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          restaurant_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          restaurant_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_categories_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_item_extras: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          name: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_extras_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_item_removable_options: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_item_removable_options_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           category: string
+          category_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -29,6 +123,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -41,6 +136,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -52,6 +148,13 @@ export type Database = {
           restaurant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "menu_items_restaurant_id_fkey"
             columns: ["restaurant_id"]
