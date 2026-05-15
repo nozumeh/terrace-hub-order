@@ -22,7 +22,11 @@ import { Route as RestaurantRunnersRouteImport } from './routes/restaurant.runne
 import { Route as RestaurantMenuRouteImport } from './routes/restaurant.menu'
 import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitchen'
 import { Route as RestaurantInventoryRouteImport } from './routes/restaurant.inventory'
+import { Route as RestaurantEmployeesRouteImport } from './routes/restaurant.employees'
 import { Route as RestaurantDashboardRouteImport } from './routes/restaurant.dashboard'
+import { Route as RegisterRestauranteRouteImport } from './routes/register.restaurante'
+import { Route as RegisterEmpleadoRouteImport } from './routes/register.empleado'
+import { Route as RegisterClienteRouteImport } from './routes/register.cliente'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 
 const RestaurantRoute = RestaurantRouteImport.update({
@@ -90,10 +94,30 @@ const RestaurantInventoryRoute = RestaurantInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => RestaurantRoute,
 } as any)
+const RestaurantEmployeesRoute = RestaurantEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 const RestaurantDashboardRoute = RestaurantDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => RestaurantRoute,
+} as any)
+const RegisterRestauranteRoute = RegisterRestauranteRouteImport.update({
+  id: '/restaurante',
+  path: '/restaurante',
+  getParentRoute: () => RegisterRoute,
+} as any)
+const RegisterEmpleadoRoute = RegisterEmpleadoRouteImport.update({
+  id: '/empleado',
+  path: '/empleado',
+  getParentRoute: () => RegisterRoute,
+} as any)
+const RegisterClienteRoute = RegisterClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => RegisterRoute,
 } as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
   id: '/orders/$id',
@@ -109,10 +133,14 @@ export interface FileRoutesByFullPath {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/register': typeof RegisterRoute
+  '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/register/cliente': typeof RegisterClienteRoute
+  '/register/empleado': typeof RegisterEmpleadoRoute
+  '/register/restaurante': typeof RegisterRestauranteRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
@@ -126,10 +154,14 @@ export interface FileRoutesByTo {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/register': typeof RegisterRoute
+  '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/register/cliente': typeof RegisterClienteRoute
+  '/register/empleado': typeof RegisterEmpleadoRoute
+  '/register/restaurante': typeof RegisterRestauranteRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
@@ -144,10 +176,14 @@ export interface FileRoutesById {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/register': typeof RegisterRoute
+  '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/register/cliente': typeof RegisterClienteRoute
+  '/register/empleado': typeof RegisterEmpleadoRoute
+  '/register/restaurante': typeof RegisterRestauranteRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
@@ -166,7 +202,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/register/cliente'
+    | '/register/empleado'
+    | '/register/restaurante'
     | '/restaurant/dashboard'
+    | '/restaurant/employees'
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
@@ -183,7 +223,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/register/cliente'
+    | '/register/empleado'
+    | '/register/restaurante'
     | '/restaurant/dashboard'
+    | '/restaurant/employees'
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
@@ -200,7 +244,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/register/cliente'
+    | '/register/empleado'
+    | '/register/restaurante'
     | '/restaurant/dashboard'
+    | '/restaurant/employees'
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
@@ -215,7 +263,7 @@ export interface RootRouteChildren {
   EmployeeRoute: typeof EmployeeRoute
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
-  RegisterRoute: typeof RegisterRoute
+  RegisterRoute: typeof RegisterRouteWithChildren
   RestaurantRoute: typeof RestaurantRouteWithChildren
   OrdersIdRoute: typeof OrdersIdRoute
 }
@@ -313,12 +361,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantInventoryRouteImport
       parentRoute: typeof RestaurantRoute
     }
+    '/restaurant/employees': {
+      id: '/restaurant/employees'
+      path: '/employees'
+      fullPath: '/restaurant/employees'
+      preLoaderRoute: typeof RestaurantEmployeesRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
     '/restaurant/dashboard': {
       id: '/restaurant/dashboard'
       path: '/dashboard'
       fullPath: '/restaurant/dashboard'
       preLoaderRoute: typeof RestaurantDashboardRouteImport
       parentRoute: typeof RestaurantRoute
+    }
+    '/register/restaurante': {
+      id: '/register/restaurante'
+      path: '/restaurante'
+      fullPath: '/register/restaurante'
+      preLoaderRoute: typeof RegisterRestauranteRouteImport
+      parentRoute: typeof RegisterRoute
+    }
+    '/register/empleado': {
+      id: '/register/empleado'
+      path: '/empleado'
+      fullPath: '/register/empleado'
+      preLoaderRoute: typeof RegisterEmpleadoRouteImport
+      parentRoute: typeof RegisterRoute
+    }
+    '/register/cliente': {
+      id: '/register/cliente'
+      path: '/cliente'
+      fullPath: '/register/cliente'
+      preLoaderRoute: typeof RegisterClienteRouteImport
+      parentRoute: typeof RegisterRoute
     }
     '/orders/$id': {
       id: '/orders/$id'
@@ -330,8 +406,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface RegisterRouteChildren {
+  RegisterClienteRoute: typeof RegisterClienteRoute
+  RegisterEmpleadoRoute: typeof RegisterEmpleadoRoute
+  RegisterRestauranteRoute: typeof RegisterRestauranteRoute
+}
+
+const RegisterRouteChildren: RegisterRouteChildren = {
+  RegisterClienteRoute: RegisterClienteRoute,
+  RegisterEmpleadoRoute: RegisterEmpleadoRoute,
+  RegisterRestauranteRoute: RegisterRestauranteRoute,
+}
+
+const RegisterRouteWithChildren = RegisterRoute._addFileChildren(
+  RegisterRouteChildren,
+)
+
 interface RestaurantRouteChildren {
   RestaurantDashboardRoute: typeof RestaurantDashboardRoute
+  RestaurantEmployeesRoute: typeof RestaurantEmployeesRoute
   RestaurantInventoryRoute: typeof RestaurantInventoryRoute
   RestaurantKitchenRoute: typeof RestaurantKitchenRoute
   RestaurantMenuRoute: typeof RestaurantMenuRoute
@@ -340,6 +433,7 @@ interface RestaurantRouteChildren {
 
 const RestaurantRouteChildren: RestaurantRouteChildren = {
   RestaurantDashboardRoute: RestaurantDashboardRoute,
+  RestaurantEmployeesRoute: RestaurantEmployeesRoute,
   RestaurantInventoryRoute: RestaurantInventoryRoute,
   RestaurantKitchenRoute: RestaurantKitchenRoute,
   RestaurantMenuRoute: RestaurantMenuRoute,
@@ -358,7 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeeRoute: EmployeeRoute,
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
-  RegisterRoute: RegisterRoute,
+  RegisterRoute: RegisterRouteWithChildren,
   RestaurantRoute: RestaurantRouteWithChildren,
   OrdersIdRoute: OrdersIdRoute,
 }

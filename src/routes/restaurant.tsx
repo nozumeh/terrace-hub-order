@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes } from "lucide-react";
+import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { NotificationsBanner } from "@/components/NotificationsBanner";
@@ -132,6 +132,9 @@ function RestaurantPanel() {
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link to="/restaurant/runners"><Bike className="h-3 w-3" /> Food runners</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/restaurant/employees"><UserPlus className="h-3 w-3" /> Empleados</Link>
               </Button>
               <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
                 <Link to="/restaurant/kitchen"><ChefHat className="h-3 w-3" /> Vista cocina</Link>
