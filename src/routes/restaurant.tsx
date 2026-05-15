@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Settings2 } from "lucide-react";
+import { Loader2, Upload, Settings2, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 
@@ -103,9 +103,16 @@ function RestaurantPanel() {
       <Header />
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <div>
-          <div className="text-xs uppercase tracking-widest text-gold">Restaurante</div>
-          <h1 className="font-heading text-3xl font-bold">Pedidos en curso</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Auto-refresco cada 30s</p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-xs uppercase tracking-widest text-gold">Restaurante</div>
+              <h1 className="font-heading text-3xl font-bold">Pedidos en curso</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Auto-refresco cada 30s</p>
+            </div>
+            <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
+              <Link to="/restaurant/kitchen"><ChefHat className="h-3 w-3" /> Vista cocina</Link>
+            </Button>
+          </div>
         </div>
 
         {orders.length === 0 ? (
