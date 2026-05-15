@@ -20,6 +20,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantMenuRouteImport } from './routes/restaurant.menu'
 import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitchen'
+import { Route as RestaurantDashboardRouteImport } from './routes/restaurant.dashboard'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 
 const RestaurantRoute = RestaurantRouteImport.update({
@@ -77,6 +78,11 @@ const RestaurantKitchenRoute = RestaurantKitchenRouteImport.update({
   path: '/kitchen',
   getParentRoute: () => RestaurantRoute,
 } as any)
+const RestaurantDashboardRoute = RestaurantDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
   id: '/orders/$id',
   path: '/orders/$id',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/orders/$id': typeof OrdersIdRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/dashboard'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/dashboard'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/restaurant'
     | '/orders/$id'
+    | '/restaurant/dashboard'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
   fileRoutesById: FileRoutesById
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantKitchenRouteImport
       parentRoute: typeof RestaurantRoute
     }
+    '/restaurant/dashboard': {
+      id: '/restaurant/dashboard'
+      path: '/dashboard'
+      fullPath: '/restaurant/dashboard'
+      preLoaderRoute: typeof RestaurantDashboardRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
     '/orders/$id': {
       id: '/orders/$id'
       path: '/orders/$id'
@@ -274,11 +293,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface RestaurantRouteChildren {
+  RestaurantDashboardRoute: typeof RestaurantDashboardRoute
   RestaurantKitchenRoute: typeof RestaurantKitchenRoute
   RestaurantMenuRoute: typeof RestaurantMenuRoute
 }
 
 const RestaurantRouteChildren: RestaurantRouteChildren = {
+  RestaurantDashboardRoute: RestaurantDashboardRoute,
   RestaurantKitchenRoute: RestaurantKitchenRoute,
   RestaurantMenuRoute: RestaurantMenuRoute,
 }
@@ -302,3 +323,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
