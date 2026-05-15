@@ -145,3 +145,17 @@
     .magic-text { animation: none; }
   }
 }
+
+@layer utilities {
+  @keyframes resto-pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 55%, transparent); transform: scale(1); }
+    40%  { box-shadow: 0 0 0 14px color-mix(in oklab, var(--gold) 0%, transparent); transform: scale(1.015); }
+    100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 0%, transparent); transform: scale(1); }
+  }
+  .animate-resto-pulse {
+    animation: resto-pulse 1.1s ease-out 2;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-resto-pulse { animation: none; }
+  }
+}

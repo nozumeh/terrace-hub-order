@@ -38,6 +38,7 @@ function RestaurantsPage() {
     return () => clearTimeout(t);
   }, [navigatingTo]);
   const selectedRef = useRef<HTMLAnchorElement | null>(null);
+  const [highlightPulse, setHighlightPulse] = useState(false);
 
   useEffect(() => {
     supabase
@@ -67,9 +68,14 @@ function RestaurantsPage() {
 
   // Smoothly scroll the previously selected restaurant into view
   useEffect(() => {
-    if (selectedResto && selectedRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    if (!selectedResto || !selectedRef.current) return;
+    // Defer one frame so layout is stable, then smooth-scroll + pulse
+    const raf = requestAnimationFrame(() => {
+      selectedRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightPulse(true);
+    });
+    const t = setTimeout(() => setHighlightPulse(false), 2200);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [selectedResto]);
 
   return (
@@ -146,7 +152,7 @@ function RestaurantsPage() {
                   }}
                   className={`group relative block rounded-2xl border p-6 transition-all active:scale-[0.99] ${
                     isSelected
-                      ? "border-gold bg-card ring-2 ring-gold/40"
+                      ? `border-gold bg-card ring-2 ring-gold/40 ${highlightPulse ? "animate-resto-pulse" : ""}`
                       : "border-border bg-card hover:border-gold/60 hover:bg-card/80"
                   }`}
                 >
