@@ -44,8 +44,7 @@ function MenuManager() {
   const [removables, setRemovables] = useState<Removable[]>([]);
 
   useEffect(() => {
-    if (!loading && !roles.includes("restaurant_owner") && !roles.includes("admin"))
-      navigate({ to: "/" });
+    if (!loading && !roles.includes("restaurant_owner")) navigate({ to: "/" });
   }, [loading, roles, navigate]);
 
   const refresh = async () => {
@@ -53,11 +52,12 @@ function MenuManager() {
     setBusy(true);
     let rid = restaurantId;
     if (!rid) {
-      const { data: r } = await supabase.from("restaurants").select("id").eq("owner_id", user.id).maybeSingle();
-      if (!r && roles.includes("admin")) {
-        const { data: anyR } = await supabase.from("restaurants").select("id").limit(1).maybeSingle();
-        rid = anyR?.id ?? null;
-      } else rid = r?.id ?? null;
+      const { data: r } = await supabase
+        .from("restaurants")
+        .select("id")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+      rid = r?.id ?? null;
       setRestaurantId(rid);
     }
     if (!rid) { setBusy(false); return; }
@@ -84,7 +84,7 @@ function MenuManager() {
   };
 
   useEffect(() => {
-    if (user && (roles.includes("restaurant_owner") || roles.includes("admin"))) refresh();
+    if (user && roles.includes("restaurant_owner")) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, roles]);
 
