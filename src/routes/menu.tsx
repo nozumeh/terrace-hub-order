@@ -11,6 +11,7 @@ import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 
 export const Route = createFileRoute("/menu")({ component: MenuPage });
 
@@ -92,9 +93,18 @@ function MenuPage() {
         </div>
 
         {activeRestoObj && (
-          <div className="mb-6">
-            <h1 className="font-heading text-2xl font-bold md:text-3xl">{activeRestoObj.name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{activeRestoObj.description}</p>
+          <div className="mb-6 flex items-center gap-4">
+            {activeRestoObj.name.toLowerCase().includes("capital burgers") && (
+              <img
+                src={capitalBurgersLogo}
+                alt="Capital Burgers logo"
+                className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-gold/40 md:h-20 md:w-20"
+              />
+            )}
+            <div>
+              <h1 className="font-heading text-2xl font-bold md:text-3xl">{activeRestoObj.name}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{activeRestoObj.description}</p>
+            </div>
           </div>
         )}
 
