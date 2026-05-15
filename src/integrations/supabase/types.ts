@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      employee_invitations: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string | null
+          expires_at: string
+          id: string
+          restaurant_id: string
+          staff_role: string
+          store_floor: string
+          store_name: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          restaurant_id: string
+          staff_role?: string
+          store_floor?: string
+          store_name?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          restaurant_id?: string
+          staff_role?: string
+          store_floor?: string
+          store_name?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       food_runners: {
         Row: {
           created_at: string
@@ -441,15 +486,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_employee_invite: { Args: { _token: string }; Returns: Json }
       avg_delivery_seconds_for_floor: {
         Args: { _floor: string; _restaurant_id: string }
         Returns: number
       }
       generate_promo_code: { Args: never; Returns: string }
+      get_invitation_by_token: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          id: string
+          restaurant_id: string
+          restaurant_name: string
+          staff_role: string
+          store_floor: string
+          store_name: string
+          used_at: string
+        }[]
+      }
       import_menu_from_csv: {
         Args: { _items: Json; _restaurant_id: string }
         Returns: number
       }
+      promote_user_to_admin_by_email: {
+        Args: { _email: string }
+        Returns: Json
+      }
+      revoke_admin_by_email: { Args: { _email: string }; Returns: Json }
       setup_account: {
         Args: {
           _account_type: string
