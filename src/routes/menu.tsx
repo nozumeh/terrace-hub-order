@@ -191,6 +191,7 @@ function MenuPage() {
       <div className="mx-auto max-w-6xl px-4 py-6">
         <Link
           to="/restaurants"
+          search={activeResto ? { selected: activeResto } : undefined}
           className="mb-4 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground hover:text-gold"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Restaurantes
