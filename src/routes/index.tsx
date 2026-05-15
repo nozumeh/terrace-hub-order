@@ -11,6 +11,7 @@ import cityMarketHero1600Webp from "@/assets/city-market-hero-1600.webp";
 import cityMarketHero640Avif from "@/assets/city-market-hero-640.avif";
 import cityMarketHero1024Avif from "@/assets/city-market-hero-1024.avif";
 import cityMarketHero1600Avif from "@/assets/city-market-hero-1600.avif";
+import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -142,7 +143,7 @@ function Landing() {
             <h2 className="mt-2 font-heading text-3xl font-bold md:text-4xl">Los que están cocinando hoy</h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <RestoCard name="Capital Burgers" tag="Hamburguesas · Combos · Sides" desc="Carne 100% res, pollo crispy y opciones veggie. Comida hecha al momento." />
+            <RestoCard name="Capital Burgers" tag="Hamburguesas · Combos · Sides" desc="Carne 100% res, pollo crispy y opciones veggie. Comida hecha al momento." logo={capitalBurgersLogo} />
             <RestoCard name="Terraza Gourmet" tag="Próximamente más opciones" desc="Comida casera del día — fresca, rápida y siempre del mismo edificio." />
           </div>
         </div>
@@ -157,7 +158,7 @@ function Landing() {
   );
 }
 
-function RestoCard({ name, tag, desc }: { name: string; tag: string; desc: string }) {
+function RestoCard({ name, tag, desc, logo }: { name: string; tag: string; desc: string; logo?: string }) {
   return (
     <Link to="/menu" className="group block rounded-xl border border-border bg-card p-6 transition-all hover:border-gold/50 hover:bg-card/80">
       <div className="flex items-start justify-between">
@@ -165,9 +166,13 @@ function RestoCard({ name, tag, desc }: { name: string; tag: string; desc: strin
           <div className="text-xs uppercase tracking-widest text-muted-foreground">{tag}</div>
           <div className="mt-1 font-heading text-2xl font-bold">{name}</div>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/15 text-gold">
-          <UtensilsCrossed className="h-5 w-5" />
-        </div>
+        {logo ? (
+          <img src={logo} alt={`${name} logo`} className="h-14 w-14 rounded-full object-cover ring-2 ring-gold/40" loading="lazy" />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/15 text-gold">
+            <UtensilsCrossed className="h-5 w-5" />
+          </div>
+        )}
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{desc}</p>
       <div className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-gold">
