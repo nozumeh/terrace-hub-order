@@ -2,12 +2,18 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, LogOut, UtensilsCrossed } from "lucide-react";
+import { ShoppingBag, LogOut, UtensilsCrossed, LayoutDashboard } from "lucide-react";
 
 export function Header({ onCartClick }: { onCartClick?: () => void }) {
   const { user, profile, roles, signOut } = useAuth();
   const { count } = useCart();
   const navigate = useNavigate();
+
+  const panelHref: "/restaurant" | "/employee" | "/account" = roles.includes("restaurant_owner")
+    ? "/restaurant"
+    : roles.some((r) => r === "worker" || r === "supervisor" || r === "manager")
+      ? "/employee"
+      : "/account";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -25,6 +31,9 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
           <Link to="/" hash="como-funciona" className="text-muted-foreground hover:text-foreground">Cómo funciona</Link>
           {roles.includes("admin") && <Link to="/admin" className="text-gold hover:text-gold/80">Admin</Link>}
           {roles.includes("restaurant_owner") && <Link to="/restaurant" className="text-gold hover:text-gold/80">Restaurante</Link>}
+          {user && !roles.includes("restaurant_owner") && (
+            <Link to={panelHref} className="text-muted-foreground hover:text-foreground">Mi panel</Link>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           {onCartClick && (
@@ -39,13 +48,19 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
           )}
           {user ? (
             <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" asChild className="hidden sm:inline-flex" aria-label="Mi panel">
+                <Link to={panelHref}><LayoutDashboard className="h-4 w-4" /></Link>
+              </Button>
               <span className="hidden text-xs text-muted-foreground sm:inline">{profile?.name || user.email}</span>
               <Button variant="ghost" size="icon" onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <Button size="sm" variant="outline" asChild><Link to="/login">Entrar</Link></Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="ghost" asChild><Link to="/login">Entrar</Link></Button>
+              <Button size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90" asChild><Link to="/register">Registrarse</Link></Button>
+            </div>
           )}
         </div>
       </div>
