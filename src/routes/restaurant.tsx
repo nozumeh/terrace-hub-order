@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
+import { NotificationsBanner } from "@/components/NotificationsBanner";
 
 export const Route = createFileRoute("/restaurant")({ component: RestaurantPanel });
 
@@ -28,6 +29,7 @@ function RestaurantPanel() {
   const [menu, setMenu] = useState<Item[]>([]);
   const [busy, setBusy] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [isActive, setIsActive] = useState<boolean>(true);
   const [editingPrice, setEditingPrice] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -40,11 +42,12 @@ function RestaurantPanel() {
     if (!rid) {
       const { data: r } = await supabase
         .from("restaurants")
-        .select("id")
+        .select("id,is_active")
         .eq("owner_id", user.id)
         .maybeSingle();
       rid = r?.id ?? null;
       setRestaurantId(rid);
+      setIsActive(r?.is_active ?? false);
     }
     if (!rid) { setBusy(false); return; }
 
