@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChefHat, ArrowLeft, Plus, Minus, Printer } from "lucide-react";
+import { Loader2, ChefHat, ArrowLeft, Plus, Minus, Printer, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/restaurant/kitchen")({ component: KitchenView });
@@ -27,7 +27,15 @@ const NEXT: Record<string, { label: string; status: string } | null> = {
   pending: { label: "Confirmar", status: "confirmed" },
   confirmed: { label: "Empezar a preparar", status: "preparing" },
   preparing: { label: "Marcar listo", status: "on_the_way" },
-  on_the_way: null,
+  on_the_way: { label: "Marcar entregado", status: "delivered" },
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Recibido",
+  confirmed: "Confirmado",
+  preparing: "Preparando",
+  on_the_way: "En camino",
+  delivered: "Entregado",
 };
 
 function KitchenView() {
@@ -52,10 +60,12 @@ function KitchenView() {
     }
     if (!id) { setBusy(false); return; }
 
+    // delivered: solo mostrar los de las últimas 4 horas para evitar saturación
+    const sinceDelivered = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
     const { data: o } = await supabase
       .from("orders").select("*")
       .eq("restaurant_id", id)
-      .in("status", ["pending", "confirmed", "preparing"])
+      .or(`status.in.(pending,confirmed,preparing,on_the_way),and(status.eq.delivered,created_at.gte.${sinceDelivered})`)
       .order("created_at", { ascending: true });
     const ords = (o ?? []) as Order[];
     setOrders(ords);
@@ -83,7 +93,9 @@ function KitchenView() {
   }, [user, roles]);
 
   const advance = async (id: string, status: string) => {
-    const { error } = await supabase.from("orders").update({ status: status as never }).eq("id", id);
+    const patch: { status: string; out_for_delivery_at?: string } = { status };
+    if (status === "on_the_way") patch.out_for_delivery_at = new Date().toISOString();
+    const { error } = await supabase.from("orders").update(patch as never).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Estado actualizado"); refresh(); }
   };
@@ -157,6 +169,8 @@ function KitchenView() {
     { key: "pending", label: "Recibidos" },
     { key: "confirmed", label: "Confirmados" },
     { key: "preparing", label: "Preparando" },
+    { key: "on_the_way", label: "En camino" },
+    { key: "delivered", label: "Entregados" },
   ];
 
   return (
@@ -181,7 +195,7 @@ function KitchenView() {
             Sin pedidos pendientes en cocina
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {cols.map((col) => {
               const list = orders.filter((o) => o.status === col.key);
               return (
@@ -195,7 +209,7 @@ function KitchenView() {
                   )}
                   {list.map((o) => {
                     const ageMin = (Date.now() - new Date(o.created_at).getTime()) / 60000;
-                    const urgent = ageMin > 15;
+                    const urgent = ageMin > 15 && o.status !== "delivered";
                     const next = NEXT[o.status];
                     return (
                       <div key={o.id} className={`rounded-xl border bg-card p-4 ${urgent ? "border-destructive" : "border-border"}`}>
@@ -205,6 +219,10 @@ function KitchenView() {
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           {o.delivery_store} · Piso {o.delivery_floor}
+                        </div>
+                        <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {o.status === "delivered" && <Check className="h-3 w-3 text-success" />}
+                          {STATUS_LABEL[o.status] ?? o.status}
                         </div>
 
                         <ul className="mt-3 space-y-3">
@@ -261,7 +279,7 @@ function KitchenView() {
                         {next && (
                           <Button
                             size="sm"
-                            className="mt-3 w-full bg-gold text-primary-foreground hover:bg-gold/90"
+                            className={`mt-3 w-full ${o.status === "on_the_way" ? "bg-success text-primary-foreground hover:bg-success/90" : "bg-gold text-primary-foreground hover:bg-gold/90"}`}
                             onClick={() => advance(o.id, next.status)}
                           >
                             {next.label}
