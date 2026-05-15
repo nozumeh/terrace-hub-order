@@ -168,6 +168,7 @@ function MenuManager() {
 function CategoriesTab({
   restaurantId, categories, onChange,
 }: { restaurantId: string; categories: Category[]; onChange: () => void }) {
+  const { requireRestaurantOwner } = useAuth();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [name, setName] = useState("");
@@ -177,6 +178,7 @@ function CategoriesTab({
   const startEdit = (c: Category) => { setEditing(c); setName(c.name); setSortOrder(String(c.sort_order)); setOpen(true); };
 
   const save = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) { toast.error("Nombre requerido"); return; }
     const payload = { name: name.trim(), sort_order: parseInt(sortOrder) || 0, restaurant_id: restaurantId };
     const { error } = editing
@@ -187,6 +189,7 @@ function CategoriesTab({
   };
 
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_categories").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Categoría eliminada"); onChange();
@@ -245,6 +248,7 @@ function ItemsTab({
   restaurantId: string; categories: Category[]; items: Item[];
   extras: Extra[]; removables: Removable[]; onChange: () => void;
 }) {
+  const { requireRestaurantOwner } = useAuth();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [name, setName] = useState("");
@@ -278,6 +282,7 @@ function ItemsTab({
   };
 
   const save = async () => {
+    if (!requireRestaurantOwner()) return;
     if (!name.trim()) { toast.error("Nombre requerido"); return; }
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) { toast.error("Precio inválido"); return; }
@@ -307,6 +312,7 @@ function ItemsTab({
   };
 
   const remove = async (id: string) => {
+    if (!requireRestaurantOwner()) return;
     await supabase.from("menu_item_extras").delete().eq("menu_item_id", id);
     await supabase.from("menu_item_removable_options").delete().eq("menu_item_id", id);
     const { error } = await supabase.from("menu_items").delete().eq("id", id);
@@ -316,6 +322,7 @@ function ItemsTab({
 
   const onPickFile = async (file: File | null) => {
     if (!file) return;
+    if (!requireRestaurantOwner()) return;
     if (!file.type.startsWith("image/")) { toast.error("El archivo debe ser una imagen"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Máximo 5 MB"); return; }
     setUploading(true);
