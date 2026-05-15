@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { CircuitGrid } from "@/components/CircuitGrid";
+import { ParallaxBg } from "@/components/ParallaxBg";
 import { ArrowRight, MousePointerClick, Bike, UtensilsCrossed, BadgePercent } from "lucide-react";
 import cityMarketHero640 from "@/assets/city-market-hero-640.jpg";
 import cityMarketHero1024 from "@/assets/city-market-hero-1024.jpg";
@@ -89,15 +89,11 @@ function Landing() {
 
       {/* How it works */}
       <section id="como-funciona" className="relative overflow-hidden border-b border-border py-20">
-        <CircuitGrid />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex select-none items-end justify-center overflow-hidden md:items-center"
-        >
+        <ParallaxBg wrapperClass="items-end justify-center md:items-center">
           <span className="magic-text font-heading text-[28vw] font-black uppercase leading-[0.8] tracking-tighter opacity-25 translate-y-[18%] sm:text-[24vw] sm:translate-y-[10%] md:text-[22vw] md:translate-y-0 md:opacity-40">
             Tecnología
           </span>
-        </div>
+        </ParallaxBg>
         <div className="relative mx-auto max-w-6xl px-4">
           <div className="mb-12 max-w-2xl">
             <div className="text-xs font-medium uppercase tracking-widest text-gold">Cómo funciona</div>
@@ -124,15 +120,11 @@ function Landing() {
 
       {/* Employee discount banner */}
       <section className="relative overflow-hidden border-b border-border py-16">
-        <CircuitGrid />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
-        >
+        <ParallaxBg wrapperClass="items-center justify-center" intensity={0.8}>
           <span className="magic-text font-heading text-[26vw] font-black uppercase leading-[0.8] tracking-tighter opacity-20 sm:text-[22vw] md:text-[20vw] md:opacity-30">
             Innovación
           </span>
-        </div>
+        </ParallaxBg>
         <div className="relative mx-auto max-w-6xl px-4">
           <div className="relative overflow-hidden rounded-2xl border border-gold/40 bg-card p-8 md:p-12">
             <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold/10 blur-2xl" />
@@ -156,15 +148,11 @@ function Landing() {
 
       {/* Restaurants */}
       <section className="relative overflow-hidden border-b border-border py-20">
-        <CircuitGrid />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex items-end justify-center overflow-hidden md:items-center"
-        >
+        <ParallaxBg wrapperClass="items-end justify-center md:items-center">
           <span className="magic-text font-heading text-[28vw] font-black uppercase leading-[0.8] tracking-tighter opacity-25 translate-y-[18%] sm:text-[24vw] sm:translate-y-[10%] md:text-[22vw] md:translate-y-0 md:opacity-35">
             Calidad
           </span>
-        </div>
+        </ParallaxBg>
         <div className="relative mx-auto max-w-6xl px-4">
           <div className="mb-10">
             <div className="text-xs font-medium uppercase tracking-widest text-gold">Restaurantes</div>
