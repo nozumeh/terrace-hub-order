@@ -189,7 +189,13 @@ function MenuPage() {
       <CartSheet open={cartOpen} onOpenChange={setCartOpen} />
 
       <div className="mx-auto max-w-6xl px-4 py-6">
-        {/* Restaurant tabs */}
+        <Link
+          to="/restaurants"
+          className="mb-4 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground hover:text-gold"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Restaurantes
+        </Link>
+        {/* Restaurant tabs (quick switcher) */}
         <div className="mb-6 flex gap-2 overflow-x-auto">
           {restaurants.map((r) => (
             <button
