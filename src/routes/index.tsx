@@ -54,14 +54,14 @@ function Landing() {
             srcSet={`${cityMarketHero640} 640w, ${cityMarketHero1024} 1024w, ${cityMarketHero1600} 1600w`}
             sizes="100vw"
             alt="City Market — el centro tecnológico de Caracas"
-            className="absolute inset-0 h-full w-full object-cover opacity-40 [object-position:70%_65%] sm:[object-position:60%_55%] md:[object-position:center]"
+            className="absolute inset-0 h-full w-full object-cover opacity-80 [object-position:70%_65%] sm:[object-position:60%_55%] md:[object-position:center]"
             loading="eager"
             decoding="async"
             fetchPriority="high"
           />
         </picture>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/85 md:bg-gradient-to-r md:from-background md:via-background/85 md:to-background/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent md:via-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background/55 md:bg-gradient-to-r md:from-background/85 md:via-background/50 md:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent md:via-background/30" />
         <div className="absolute -right-20 top-1/3 h-[400px] w-[400px] rounded-full bg-gold/10 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-32">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
