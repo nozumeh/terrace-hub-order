@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as RestaurantRouteImport } from './routes/restaurant'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MenuRouteImport } from './routes/menu'
@@ -29,6 +30,11 @@ import { Route as RegisterEmpleadoRouteImport } from './routes/register.empleado
 import { Route as RegisterClienteRouteImport } from './routes/register.cliente'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 
+const RestaurantsRoute = RestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RestaurantRoute = RestaurantRouteImport.update({
   id: '/restaurant',
   path: '/restaurant',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
+  '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
+  '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
   '/restaurant': typeof RestaurantRouteWithChildren
+  '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/register'
     | '/restaurant'
+    | '/restaurants'
     | '/orders/$id'
     | '/register/cliente'
     | '/register/empleado'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/register'
     | '/restaurant'
+    | '/restaurants'
     | '/orders/$id'
     | '/register/cliente'
     | '/register/empleado'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/register'
     | '/restaurant'
+    | '/restaurants'
     | '/orders/$id'
     | '/register/cliente'
     | '/register/empleado'
@@ -265,11 +277,19 @@ export interface RootRouteChildren {
   MenuRoute: typeof MenuRoute
   RegisterRoute: typeof RegisterRouteWithChildren
   RestaurantRoute: typeof RestaurantRouteWithChildren
+  RestaurantsRoute: typeof RestaurantsRoute
   OrdersIdRoute: typeof OrdersIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/restaurants': {
+      id: '/restaurants'
+      path: '/restaurants'
+      fullPath: '/restaurants'
+      preLoaderRoute: typeof RestaurantsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/restaurant': {
       id: '/restaurant'
       path: '/restaurant'
@@ -454,6 +474,7 @@ const rootRouteChildren: RootRouteChildren = {
   MenuRoute: MenuRoute,
   RegisterRoute: RegisterRouteWithChildren,
   RestaurantRoute: RestaurantRouteWithChildren,
+  RestaurantsRoute: RestaurantsRoute,
   OrdersIdRoute: OrdersIdRoute,
 }
 export const routeTree = rootRouteImport
