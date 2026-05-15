@@ -120,6 +120,7 @@ export type Database = {
           options: Json | null
           price: number
           restaurant_id: string
+          stock_quantity: number | null
         }
         Insert: {
           category?: string
@@ -133,6 +134,7 @@ export type Database = {
           options?: Json | null
           price: number
           restaurant_id: string
+          stock_quantity?: number | null
         }
         Update: {
           category?: string
@@ -146,6 +148,7 @@ export type Database = {
           options?: Json | null
           price?: number
           restaurant_id?: string
+          stock_quantity?: number | null
         }
         Relationships: [
           {
