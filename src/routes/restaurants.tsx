@@ -30,6 +30,13 @@ function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+
+  // Auto-hide the loader quickly so it never feels blocking
+  useEffect(() => {
+    if (!navigatingTo) return;
+    const t = setTimeout(() => setNavigatingTo(null), 500);
+    return () => clearTimeout(t);
+  }, [navigatingTo]);
   const selectedRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
@@ -60,10 +67,10 @@ function RestaurantsPage() {
     <div className="min-h-screen bg-background pb-24">
       <Header />
       {navigatingTo && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm animate-fade-in">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
-          <div className="text-sm font-medium text-muted-foreground">
-            Abriendo menú de <span className="text-foreground">{navigatingTo}</span>…
+        <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4 animate-fade-in">
+          <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-background/95 px-4 py-2 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-gold" />
+            Abriendo <span className="text-foreground">{navigatingTo}</span>…
           </div>
         </div>
       )}
