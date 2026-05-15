@@ -107,6 +107,15 @@ function RestaurantPanel() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
+        <NotificationsBanner />
+        {!isActive && restaurantId && (
+          <div className="rounded-xl border border-gold/40 bg-gold/5 p-5">
+            <div className="font-heading text-lg font-semibold">Tu negocio está pendiente de aprobación</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Un administrador de City Market revisará tu solicitud. Podrás recibir pedidos en cuanto sea aprobada — recibirás una notificación aquí.
+            </p>
+          </div>
+        )}
         <div>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
