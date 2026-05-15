@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, FileUp, Download } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 interface Props {
   open: boolean;
@@ -90,6 +91,7 @@ function downloadSampleCsv() {
 }
 
 export function CsvImportDialog({ open, onOpenChange, restaurantId, onImported }: Props) {
+  const { requireRestaurantOwner } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [fileName, setFileName] = useState<string>("");
@@ -144,6 +146,7 @@ export function CsvImportDialog({ open, onOpenChange, restaurantId, onImported }
 
   const doImport = async () => {
     if (!items.length) return;
+    if (!requireRestaurantOwner()) return;
     setBusy(true);
     const { data, error } = await supabase.rpc("import_menu_from_csv" as never, {
       _restaurant_id: restaurantId,
