@@ -5,6 +5,7 @@ import { CartSheet } from "@/components/CartSheet";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
@@ -16,29 +17,54 @@ import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 export const Route = createFileRoute("/menu")({ component: MenuPage });
 
 interface Restaurant { id: string; name: string; description: string; is_active: boolean }
-interface Item { id: string; restaurant_id: string; name: string; description: string; price: number; category: string; is_available: boolean; image_url: string | null; options: string[] | null }
+interface Category { id: string; restaurant_id: string; name: string; sort_order: number }
+interface Extra { id: string; name: string; price: number }
+interface Removable { id: string; name: string }
+interface Item {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  category_id: string | null;
+  is_available: boolean;
+  image_url: string | null;
+  options: string[] | null;
+  menu_item_extras: Extra[];
+  menu_item_removable_options: Removable[];
+}
 
 function MenuPage() {
   const { profile, roles } = useAuth();
   const employee = isEmployee(profile, roles);
   const { add } = useCart();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [activeResto, setActiveResto] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>("All");
   const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
-  const [variantItem, setVariantItem] = useState<Item | null>(null);
+  const [customizeItem, setCustomizeItem] = useState<Item | null>(null);
   const [variantChoice, setVariantChoice] = useState<string>("");
+  const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
+  const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     (async () => {
-      const [{ data: r }, { data: m }] = await Promise.all([
+      const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
         supabase.from("restaurants").select("*").eq("is_active", true).order("name"),
-        supabase.from("menu_items").select("*").order("category"),
+        supabase.from("menu_categories").select("*").order("sort_order"),
+        supabase
+          .from("menu_items")
+          .select("*, menu_item_extras(id,name,price), menu_item_removable_options(id,name)")
+          .eq("is_available", true)
+          .order("category"),
       ]);
       const rs = (r ?? []) as Restaurant[];
       setRestaurants(rs);
+      setCategories((c ?? []) as Category[]);
       setItems((m ?? []) as unknown as Item[]);
       setActiveResto(rs[0]?.id ?? null);
       setLoading(false);
@@ -46,29 +72,84 @@ function MenuPage() {
   }, []);
 
   const restoItems = useMemo(() => items.filter((i) => i.restaurant_id === activeResto), [items, activeResto]);
-  const categories = useMemo(() => ["All", ...Array.from(new Set(restoItems.map((i) => i.category)))], [restoItems]);
-  const filtered = activeCat === "All" ? restoItems : restoItems.filter((i) => i.category === activeCat);
+  const restoCategories = useMemo(
+    () => categories.filter((c) => c.restaurant_id === activeResto),
+    [categories, activeResto],
+  );
+  // Prefer named categories from menu_categories; fall back to legacy text column on items.
+  const catNames = useMemo(() => {
+    if (restoCategories.length > 0) return restoCategories.map((c) => c.name);
+    return Array.from(new Set(restoItems.map((i) => i.category)));
+  }, [restoCategories, restoItems]);
+  const catTabs = ["All", ...catNames];
+  const filtered = activeCat === "All"
+    ? restoItems
+    : restoItems.filter((i) => {
+        if (restoCategories.length > 0) {
+          const matched = restoCategories.find((c) => c.name === activeCat);
+          return matched ? i.category_id === matched.id || i.category === activeCat : false;
+        }
+        return i.category === activeCat;
+      });
   const activeRestoObj = restaurants.find((r) => r.id === activeResto);
+
+  const needsCustomization = (i: Item) =>
+    (Array.isArray(i.options) && i.options.length > 0) ||
+    (i.menu_item_extras?.length ?? 0) > 0 ||
+    (i.menu_item_removable_options?.length ?? 0) > 0;
 
   const handleAdd = (i: Item) => {
     if (!i.is_available) return;
-    if (Array.isArray(i.options) && i.options.length > 0) {
-      setVariantChoice(i.options[0]);
-      setVariantItem(i);
+    if (needsCustomization(i)) {
+      setVariantChoice(Array.isArray(i.options) && i.options.length > 0 ? i.options[0] : "");
+      setChosenExtras(new Set());
+      setChosenRemoved(new Set());
+      setCustomizeItem(i);
       return;
     }
     add({ menu_item_id: i.id, restaurant_id: i.restaurant_id, name: i.name, unit_price: Number(i.price) });
     toast.success(`${i.name} agregado`);
   };
 
-  const confirmVariant = () => {
-    if (!variantItem || !variantChoice) return;
-    const composedId = `${variantItem.id}::${variantChoice}`;
-    const composedName = `${variantItem.name} — ${variantChoice}`;
-    add({ menu_item_id: composedId, restaurant_id: variantItem.restaurant_id, name: composedName, unit_price: Number(variantItem.price) });
-    toast.success(`${composedName} agregado`);
-    setVariantItem(null);
+  const closeCustomize = () => {
+    setCustomizeItem(null);
     setVariantChoice("");
+    setChosenExtras(new Set());
+    setChosenRemoved(new Set());
+  };
+
+  const toggleSet = (set: Set<string>, id: string) => {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  };
+
+  const confirmCustomize = () => {
+    if (!customizeItem) return;
+    const extras = (customizeItem.menu_item_extras ?? []).filter((e) => chosenExtras.has(e.id));
+    const removed = (customizeItem.menu_item_removable_options ?? []).filter((r) => chosenRemoved.has(r.id));
+    const extrasPrice = extras.reduce((a, e) => a + Number(e.price), 0);
+    const idParts = [customizeItem.id];
+    const nameParts: string[] = [];
+    if (variantChoice) { idParts.push(variantChoice); nameParts.push(variantChoice); }
+    if (extras.length) {
+      idParts.push("e:" + extras.map((e) => e.id).sort().join(","));
+      nameParts.push("+ " + extras.map((e) => e.name).join(", "));
+    }
+    if (removed.length) {
+      idParts.push("r:" + removed.map((r) => r.id).sort().join(","));
+      nameParts.push("sin " + removed.map((r) => r.name).join(", "));
+    }
+    const composedId = idParts.join("::");
+    const composedName = nameParts.length ? `${customizeItem.name} — ${nameParts.join(" · ")}` : customizeItem.name;
+    add({
+      menu_item_id: composedId,
+      restaurant_id: customizeItem.restaurant_id,
+      name: composedName,
+      unit_price: Number(customizeItem.price) + extrasPrice,
+    });
+    toast.success(`${composedName} agregado`);
+    closeCustomize();
   };
 
   return (
@@ -110,7 +191,7 @@ function MenuPage() {
 
         {/* Category tabs */}
         <div className="mb-6 flex gap-2 overflow-x-auto border-b border-border pb-1">
-          {categories.map((c) => (
+          {catTabs.map((c) => (
             <button
               key={c}
               onClick={() => setActiveCat(c)}
@@ -171,22 +252,66 @@ function MenuPage() {
         )}
       </div>
 
-      <Dialog open={!!variantItem} onOpenChange={(v) => { if (!v) { setVariantItem(null); setVariantChoice(""); } }}>
+      <Dialog open={!!customizeItem} onOpenChange={(v) => { if (!v) closeCustomize(); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{variantItem?.name}</DialogTitle>
+            <DialogTitle>{customizeItem?.name}</DialogTitle>
           </DialogHeader>
-          <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
-            {(variantItem?.options ?? []).map((opt) => (
-              <Label key={opt} htmlFor={`opt-${opt}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
-                <RadioGroupItem id={`opt-${opt}`} value={opt} />
-                <span className="text-sm">{opt}</span>
-              </Label>
-            ))}
-          </RadioGroup>
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto">
+            {Array.isArray(customizeItem?.options) && customizeItem!.options!.length > 0 && (
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opción</div>
+                <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
+                  {(customizeItem?.options ?? []).map((opt) => (
+                    <Label key={opt} htmlFor={`opt-${opt}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                      <RadioGroupItem id={`opt-${opt}`} value={opt} />
+                      <span className="text-sm">{opt}</span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+              </div>
+            )}
+
+            {(customizeItem?.menu_item_extras?.length ?? 0) > 0 && (
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Extras</div>
+                <div className="space-y-2">
+                  {customizeItem!.menu_item_extras.map((e) => (
+                    <Label key={e.id} htmlFor={`ex-${e.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                      <Checkbox
+                        id={`ex-${e.id}`}
+                        checked={chosenExtras.has(e.id)}
+                        onCheckedChange={() => setChosenExtras((s) => toggleSet(s, e.id))}
+                      />
+                      <span className="flex-1 text-sm">{e.name}</span>
+                      <span className="text-sm text-gold">+${Number(e.price).toFixed(2)}</span>
+                    </Label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(customizeItem?.menu_item_removable_options?.length ?? 0) > 0 && (
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quitar ingredientes</div>
+                <div className="space-y-2">
+                  {customizeItem!.menu_item_removable_options.map((r) => (
+                    <Label key={r.id} htmlFor={`rm-${r.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                      <Checkbox
+                        id={`rm-${r.id}`}
+                        checked={chosenRemoved.has(r.id)}
+                        onCheckedChange={() => setChosenRemoved((s) => toggleSet(s, r.id))}
+                      />
+                      <span className="text-sm">Sin {r.name}</span>
+                    </Label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setVariantItem(null); setVariantChoice(""); }}>Cancelar</Button>
-            <Button onClick={confirmVariant} className="bg-gold text-primary-foreground hover:bg-gold/90">Agregar</Button>
+            <Button variant="outline" onClick={closeCustomize}>Cancelar</Button>
+            <Button onClick={confirmCustomize} className="bg-gold text-primary-foreground hover:bg-gold/90">Agregar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
