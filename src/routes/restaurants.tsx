@@ -85,7 +85,11 @@ function RestaurantsPage() {
               <span className="font-heading font-semibold text-foreground">{selectedResto.name}</span>
             </div>
             <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
-              <Link to="/menu" search={{ r: selectedResto.id }}>
+              <Link
+                to="/menu"
+                search={{ r: selectedResto.id }}
+                onClick={() => setNavigatingTo(selectedResto.name)}
+              >
                 Ir al menú <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
