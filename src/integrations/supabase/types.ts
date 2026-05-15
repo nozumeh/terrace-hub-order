@@ -166,6 +166,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          customizations: Json
           id: string
           menu_item_id: string
           name: string
@@ -175,6 +176,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          customizations?: Json
           id?: string
           menu_item_id: string
           name: string
@@ -184,6 +186,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          customizations?: Json
           id?: string
           menu_item_id?: string
           name?: string

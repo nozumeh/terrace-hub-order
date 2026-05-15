@@ -58,6 +58,12 @@ function Checkout() {
       items.map((i) => ({
         order_id: order.id, menu_item_id: i.menu_item_id, name: i.name,
         quantity: i.quantity, unit_price: i.unit_price, subtotal: i.unit_price * i.quantity,
+        customizations: {
+          base_price: i.base_price,
+          variant: i.variant,
+          extras: i.extras,
+          removed: i.removed,
+        } as unknown as never,
       }))
     );
     if (itemsErr) { setBusy(false); toast.error(itemsErr.message); return; }
@@ -107,9 +113,22 @@ function Checkout() {
           <h2 className="font-heading text-xl font-bold">Resumen</h2>
           <ul className="space-y-2 text-sm">
             {items.map((i) => (
-              <li key={i.menu_item_id} className="flex justify-between">
-                <span className="truncate">{i.quantity}× {i.name}</span>
-                <span className="ml-2 shrink-0">${(i.unit_price * i.quantity).toFixed(2)}</span>
+              <li key={i.cart_key} className="space-y-0.5">
+                <div className="flex justify-between">
+                  <span className="truncate">{i.quantity}× {i.name}</span>
+                  <span className="ml-2 shrink-0">${(i.unit_price * i.quantity).toFixed(2)}</span>
+                </div>
+                {(i.variant || i.extras.length > 0 || i.removed.length > 0) && (
+                  <ul className="ml-4 text-xs text-muted-foreground">
+                    {i.variant && <li>· {i.variant}</li>}
+                    {i.extras.map((e) => (
+                      <li key={`e-${e.id}`} className="text-gold/80">+ {e.name} (${e.price.toFixed(2)})</li>
+                    ))}
+                    {i.removed.map((r) => (
+                      <li key={`r-${r.id}`}>− sin {r.name}</li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

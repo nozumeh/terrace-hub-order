@@ -20,7 +20,13 @@ interface Order {
   delivery_store: string; delivery_floor: string; restaurant_id: string;
   notes: string;
 }
-interface Item { id: string; name: string; quantity: number; subtotal: number }
+interface ItemCustomizations {
+  base_price?: number;
+  variant?: string | null;
+  extras?: { id: string; name: string; price: number }[];
+  removed?: { id: string; name: string }[];
+}
+interface Item { id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
 
 function OrderStatus() {
   const { id } = Route.useParams();
@@ -99,9 +105,22 @@ function OrderStatus() {
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Items</div>
           <ul className="mt-3 space-y-2 text-sm">
             {items.map((i) => (
-              <li key={i.id} className="flex justify-between">
-                <span>{i.quantity}× {i.name}</span>
-                <span>${Number(i.subtotal).toFixed(2)}</span>
+              <li key={i.id} className="space-y-0.5">
+                <div className="flex justify-between">
+                  <span>{i.quantity}× {i.name}</span>
+                  <span>${Number(i.subtotal).toFixed(2)}</span>
+                </div>
+                {(i.customizations?.variant || (i.customizations?.extras?.length ?? 0) > 0 || (i.customizations?.removed?.length ?? 0) > 0) && (
+                  <ul className="ml-4 text-xs text-muted-foreground">
+                    {i.customizations?.variant && <li>· {i.customizations.variant}</li>}
+                    {i.customizations?.extras?.map((e) => (
+                      <li key={`e-${e.id}`} className="text-gold/80">+ {e.name} (${Number(e.price).toFixed(2)})</li>
+                    ))}
+                    {i.customizations?.removed?.map((r) => (
+                      <li key={`r-${r.id}`}>− sin {r.name}</li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
