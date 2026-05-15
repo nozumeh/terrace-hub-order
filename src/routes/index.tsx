@@ -63,15 +63,6 @@ function Landing() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background/55 md:bg-gradient-to-r md:from-background/85 md:via-background/50 md:to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent md:via-background/30" />
         <div className="absolute -right-20 top-1/3 h-[400px] w-[400px] rounded-full bg-gold/10 blur-3xl" />
-        {/* Background word — Tecnología */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 flex select-none items-end justify-center overflow-hidden"
-        >
-          <span className="font-heading text-[22vw] font-black uppercase leading-[0.85] tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_28%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_25%,transparent)]">
-            Tecnología
-          </span>
-        </div>
         <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-32">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -96,8 +87,16 @@ function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="como-funciona" className="border-b border-border py-20">
-        <div className="mx-auto max-w-6xl px-4">
+      <section id="como-funciona" className="relative overflow-hidden border-b border-border py-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden"
+        >
+          <span className="font-heading text-[22vw] font-black uppercase leading-none tracking-tighter text-transparent [-webkit-text-stroke:1px_color-mix(in_oklab,var(--gold)_28%,transparent)] md:[-webkit-text-stroke:2px_color-mix(in_oklab,var(--gold)_25%,transparent)]">
+            Tecnología
+          </span>
+        </div>
+        <div className="relative mx-auto max-w-6xl px-4">
           <div className="mb-12 max-w-2xl">
             <div className="text-xs font-medium uppercase tracking-widest text-gold">Cómo funciona</div>
             <h2 className="mt-2 font-heading text-3xl font-bold md:text-4xl">3 pasos. Menos de 60 segundos.</h2>
