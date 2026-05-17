@@ -47,7 +47,10 @@ function RestaurantsPage() {
       .eq("is_active", true)
       .order("name")
       .then(({ data }) => {
-        setRestaurants((data ?? []) as Restaurant[]);
+        const filtered = ((data ?? []) as Restaurant[]).filter(
+          (r) => !/terraza\s*gourmet/i.test(r.name),
+        );
+        setRestaurants(filtered);
         setLoading(false);
       });
   }, []);
