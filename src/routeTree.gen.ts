@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as RestaurantRouteImport } from './routes/restaurant'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
@@ -39,6 +40,11 @@ const RestaurantsRoute = RestaurantsRouteImport.update({
 const RestaurantRoute = RestaurantRouteImport.update({
   id: '/restaurant',
   path: '/restaurant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -289,6 +301,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
   RegisterRoute: typeof RegisterRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RestaurantRoute: typeof RestaurantRouteWithChildren
   RestaurantsRoute: typeof RestaurantsRoute
   OrdersIdRoute: typeof OrdersIdRoute
@@ -308,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/restaurant'
       fullPath: '/restaurant'
       preLoaderRoute: typeof RestaurantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
   RegisterRoute: RegisterRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   RestaurantRoute: RestaurantRouteWithChildren,
   RestaurantsRoute: RestaurantsRoute,
   OrdersIdRoute: OrdersIdRoute,
