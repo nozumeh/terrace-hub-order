@@ -21,6 +21,7 @@ export interface Profile {
   is_employee: boolean;
   phone?: string | null;
   promo_code?: string | null;
+  customer_code?: string | null;
   account_type?: "customer" | "employee" | "restaurant_owner" | null;
 }
 
@@ -54,8 +55,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").eq("id", u.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", u.id),
     ]);
-    setProfile(p as Profile | null);
-    setRoles(((r as { role: Role }[] | null) ?? []).map((x) => x.role));
+    let prof = p as Profile | null;
+    const rolesList = ((r as { role: Role }[] | null) ?? []).map((x) => x.role);
+    // Auto-generate customer_code for customer accounts that don't have one yet.
+    if (prof && !prof.customer_code && (prof.account_type === "customer" || rolesList.includes("customer"))) {
+      const code = "CL" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: updated } = await supabase
+        .from("profiles")
+        .update({ customer_code: code })
+        .eq("id", u.id)
+        .select()
+        .maybeSingle();
+      if (updated) prof = updated as Profile;
+    }
+    setProfile(prof);
+    setRoles(rolesList);
   };
 
   useEffect(() => {
