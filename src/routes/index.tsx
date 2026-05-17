@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ParallaxBg } from "@/components/ParallaxBg";
 import { ArrowRight, MousePointerClick, Bike, UtensilsCrossed, BadgePercent } from "lucide-react";
+import terrazaLogo from "@/assets/terraza-logo.png";
 import cityMarketHero640 from "@/assets/city-market-hero-640.jpg";
 import cityMarketHero1024 from "@/assets/city-market-hero-1024.jpg";
 import cityMarketHero1600 from "@/assets/city-market-hero-1600.jpg";
@@ -170,8 +171,9 @@ function Landing() {
       </section>
 
       <footer className="py-10">
-        <div className="mx-auto max-w-6xl px-4 text-center text-xs text-muted-foreground">
-          © 2026 Terraza Gourmet City Market · Tecnología por <span className="text-gold">Coral Pandas Network</span>
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 text-center text-xs text-muted-foreground">
+          <img src={terrazaLogo} alt="Terraza Gourmet City Market" className="h-10 w-10 object-contain opacity-90" />
+          <div>© 2026 Terraza Gourmet City Market · Tecnología por <span className="text-gold">Coral Pandas Network</span></div>
         </div>
       </footer>
     </div>
