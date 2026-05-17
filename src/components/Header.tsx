@@ -7,7 +7,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import {
   ShoppingBag,
   LogOut,
-  UtensilsCrossed,
   LayoutDashboard,
   Menu as MenuIcon,
   Home,
@@ -17,6 +16,7 @@ import {
   LogIn,
   UserPlus,
 } from "lucide-react";
+import terrazaLogo from "@/assets/terraza-logo.png";
 
 export function Header({ onCartClick }: { onCartClick?: () => void }) {
   const { user, profile, roles, signOut } = useAuth();
@@ -48,7 +48,7 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="border-b border-border px-5 py-4 text-left">
                 <SheetTitle className="flex items-center gap-2">
-                  <UtensilsCrossed className="h-5 w-5 text-gold" />
+                  <img src={terrazaLogo} alt="" className="h-6 w-6 object-contain" />
                   <span className="font-heading text-sm font-bold tracking-tight">TERRAZA GOURMET</span>
                 </SheetTitle>
               </SheetHeader>
@@ -84,7 +84,7 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
           </Sheet>
 
           <Link to="/" className="flex items-center gap-2">
-            <UtensilsCrossed className="h-5 w-5 text-gold" />
+            <img src={terrazaLogo} alt="Terraza Gourmet" className="h-7 w-7 object-contain" />
             <div className="leading-tight">
               <div className="font-heading text-sm font-bold tracking-tight">TERRAZA GOURMET</div>
               <div className="hidden text-[10px] uppercase tracking-widest text-muted-foreground sm:block">City Market · Caracas</div>
