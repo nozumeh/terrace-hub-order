@@ -473,6 +473,7 @@ export type Database = {
         Row: {
           account_type: string
           created_at: string
+          customer_code: string | null
           email: string | null
           id: string
           is_employee: boolean
@@ -486,6 +487,7 @@ export type Database = {
         Insert: {
           account_type?: string
           created_at?: string
+          customer_code?: string | null
           email?: string | null
           id: string
           is_employee?: boolean
@@ -499,6 +501,7 @@ export type Database = {
         Update: {
           account_type?: string
           created_at?: string
+          customer_code?: string | null
           email?: string | null
           id?: string
           is_employee?: boolean

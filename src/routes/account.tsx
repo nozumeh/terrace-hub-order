@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, Package, Settings } from "lucide-react";
+import { Loader2, Package, Settings, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/account")({ component: AccountPage });
@@ -30,8 +30,6 @@ function AccountPage() {
   // Form state for settings modal
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [storeId, setStoreId] = useState("");
-  const [storeName, setStoreName] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -42,8 +40,6 @@ function AccountPage() {
     if (profile) {
       setName(profile.name || "");
       setPhone(profile.phone || "");
-      setStoreId(profile.store_id || "");
-      setStoreName(profile.store_name || "");
     }
   }, [profile]);
 
@@ -74,7 +70,7 @@ function AccountPage() {
     setBusy(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name, phone, store_id: storeId, store_name: storeName })
+      .update({ name, phone })
       .eq("id", user.id);
     setBusy(false);
     if (error) toast.error(error.message);
@@ -95,6 +91,11 @@ function AccountPage() {
           <div>
             <div className="text-xs uppercase tracking-widest text-gold">Mi cuenta</div>
             <h1 className="font-heading text-2xl font-bold">Hola, {profile?.name || user.email}</h1>
+            {profile?.customer_code && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                ID Cliente: <span className="font-mono text-gold">{profile.customer_code}</span>
+              </div>
+            )}
           </div>
           <Button
             variant="outline"
@@ -112,7 +113,44 @@ function AccountPage() {
             <Package className="h-4 w-4 text-gold" /> Historial de Pedidos
           </div>
           {orders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aún no tienes pedidos.</p>
+            <div className="space-y-6 py-4">
+              <div className="text-center">
+                <h2 className="font-heading text-2xl font-bold">¿Listo para ordenar? 🍔</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Elige tu restaurante favorito y recibe tu pedido directo en tu tienda.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Link
+                  to="/menu"
+                  className="group rounded-xl border border-gold/40 bg-card p-5 transition hover:border-gold hover:shadow-[0_0_24px_-8px_hsl(var(--gold)/0.5)]"
+                >
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gold/10 text-gold">
+                    <UtensilsCrossed className="h-6 w-6" />
+                  </div>
+                  <div className="font-heading text-lg font-bold">Capital Burgers</div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Hamburguesas artesanales, papas y más. Pide y recíbelo en tu piso.
+                  </p>
+                  <div className="mt-4 inline-flex items-center text-sm font-semibold text-gold group-hover:underline">
+                    Ver menú →
+                  </div>
+                </Link>
+                <div className="rounded-xl border border-border/60 bg-card/50 p-5 opacity-70">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <UtensilsCrossed className="h-6 w-6" />
+                  </div>
+                  <div className="font-heading text-lg font-bold">Terraza Gourmet</div>
+                  <p className="mt-1 text-xs text-muted-foreground">Próximamente</p>
+                  <button
+                    disabled
+                    className="mt-4 cursor-not-allowed text-sm font-semibold text-muted-foreground"
+                  >
+                    Próximamente
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-6">
               {grouped.map(([key, list]) => (
@@ -162,14 +200,6 @@ function AccountPage() {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input value={user.email ?? ""} readOnly disabled />
-            </div>
-            <div className="space-y-2">
-              <Label>ID# de Tienda</Label>
-              <Input value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} />
-            </div>
-            <div className="space-y-2">
-              <Label>Tienda</Label>
-              <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} maxLength={80} />
             </div>
           </div>
           <DialogFooter>

@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS customer_code text;
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_customer_code_unique ON public.profiles(customer_code) WHERE customer_code IS NOT NULL;
