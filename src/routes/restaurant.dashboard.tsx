@@ -7,15 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Save } from "lucide-react";
+import { Loader2, ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Save, Receipt, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { NotificationsBanner } from "@/components/NotificationsBanner";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export const Route = createFileRoute("/restaurant/dashboard")({ component: Dashboard });
 
 interface OrderRow { id: string; total_final: number; status: string; created_at: string }
 interface ItemRow { order_id: string; name: string; quantity: number; subtotal: number }
 interface RestaurantInfo { id: string; name: string; description: string | null; phone: string | null; address: string | null; hours: string | null; logo_url: string | null }
+
+type Period = "today" | "week" | "month";
+const PAGE_SIZE = 10;
 
 function Dashboard() {
   const { user, loading, isRestaurantOwner } = useAuth();
@@ -25,6 +31,8 @@ function Dashboard() {
   const [items, setItems] = useState<ItemRow[]>([]);
   const [busy, setBusy] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [period, setPeriod] = useState<Period>("today");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!loading && !isRestaurantOwner) navigate({ to: "/" });
@@ -46,31 +54,57 @@ function Dashboard() {
     })();
   }, [user]);
 
-  const stats = useMemo(() => {
+  const periodMs = period === "today" ? 86400000 : period === "week" ? 7 * 86400000 : 30 * 86400000;
+  const periodOrders = useMemo(() => {
+    const cutoff = Date.now() - periodMs;
+    return orders.filter((o) => new Date(o.created_at).getTime() >= cutoff);
+  }, [orders, periodMs]);
+
+  const kpis = useMemo(() => {
+    const sum = periodOrders.reduce((a, b) => a + Number(b.total_final), 0);
+    const count = periodOrders.length;
+    const ticket = count ? sum / count : 0;
+    const ids = new Set(periodOrders.map((o) => o.id));
+    const periodItems = items.filter((i) => ids.has(i.order_id));
+    const map = new Map<string, number>();
+    for (const it of periodItems) map.set(it.name, (map.get(it.name) ?? 0) + Number(it.quantity));
+    let topName = "—"; let topQty = 0;
+    for (const [n, q] of map) if (q > topQty) { topName = n; topQty = q; }
+    return { sum, count, ticket, topName, topQty };
+  }, [periodOrders, items]);
+
+  const chartData = useMemo(() => {
+    const buckets = period === "today" ? 24 : period === "week" ? 7 : 30;
+    const unit = period === "today" ? 3600000 : 86400000;
     const now = Date.now();
-    const day = 24 * 3600 * 1000;
-    const today = orders.filter((o) => now - new Date(o.created_at).getTime() < day);
-    const week = orders.filter((o) => now - new Date(o.created_at).getTime() < 7 * day);
-    const month = orders.filter((o) => now - new Date(o.created_at).getTime() < 30 * day);
-    const sum = (xs: OrderRow[]) => xs.reduce((a, b) => a + Number(b.total_final), 0);
-    return {
-      todayCount: today.length, todaySum: sum(today),
-      weekCount: week.length, weekSum: sum(week),
-      monthCount: month.length, monthSum: sum(month),
-      total: sum(orders),
-    };
-  }, [orders]);
+    const arr = Array.from({ length: buckets }, (_, i) => {
+      const start = now - (buckets - 1 - i) * unit;
+      return { key: start, label: period === "today" ? format(new Date(start), "HH'h'") : format(new Date(start), "dd MMM", { locale: es }), ventas: 0 };
+    });
+    for (const o of periodOrders) {
+      const t = new Date(o.created_at).getTime();
+      const idx = buckets - 1 - Math.floor((now - t) / unit);
+      if (idx >= 0 && idx < buckets) arr[idx].ventas += Number(o.total_final);
+    }
+    return arr;
+  }, [periodOrders, period]);
+
+  useEffect(() => { setPage(1); }, [period]);
 
   const topProducts = useMemo(() => {
     const map = new Map<string, { name: string; qty: number; revenue: number }>();
-    for (const it of items) {
+    const ids = new Set(periodOrders.map((o) => o.id));
+    for (const it of items.filter((i) => ids.has(i.order_id))) {
       const cur = map.get(it.name) ?? { name: it.name, qty: 0, revenue: 0 };
       cur.qty += Number(it.quantity);
       cur.revenue += Number(it.subtotal);
       map.set(it.name, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.qty - a.qty).slice(0, 10);
-  }, [items]);
+  }, [items, periodOrders]);
+
+  const totalPages = Math.max(1, Math.ceil(periodOrders.length / PAGE_SIZE));
+  const pageOrders = periodOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const saveInfo = async () => {
     if (!resto) return;
@@ -99,11 +133,39 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Ventas hoy" value={`$${stats.todaySum.toFixed(2)}`} sub={`${stats.todayCount} pedidos`} />
-          <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Últimos 7 días" value={`$${stats.weekSum.toFixed(2)}`} sub={`${stats.weekCount} pedidos`} />
-          <StatCard icon={<ShoppingBag className="h-4 w-4" />} label="Últimos 30 días" value={`$${stats.monthSum.toFixed(2)}`} sub={`${stats.monthCount} pedidos`} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-lg font-bold">Resumen</h2>
+          <div className="inline-flex rounded-lg border border-border bg-card p-1">
+            {(["today","week","month"] as Period[]).map((p) => (
+              <button key={p} onClick={() => setPeriod(p)}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${period === p ? "bg-gold text-black" : "text-muted-foreground hover:text-foreground"}`}>
+                {p === "today" ? "Hoy" : p === "week" ? "Semana" : "Mes"}
+              </button>
+            ))}
+          </div>
         </div>
+
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Ventas" value={`$${kpis.sum.toFixed(2)}`} sub={periodLabel(period)} />
+          <StatCard icon={<ShoppingBag className="h-4 w-4" />} label="Pedidos" value={`${kpis.count}`} sub="completados" />
+          <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Ticket promedio" value={`$${kpis.ticket.toFixed(2)}`} sub="por pedido" />
+          <StatCard icon={<Trophy className="h-4 w-4" />} label="Top producto" value={kpis.topName} sub={kpis.topQty ? `${kpis.topQty} vendidos` : "—"} />
+        </div>
+
+        <section className="rounded-xl border border-border bg-card p-6">
+          <h2 className="mb-4 font-heading text-lg font-bold">Ventas por {period === "today" ? "hora" : "día"}</h2>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`$${v.toFixed(2)}`, "Ventas"]} />
+                <Bar dataKey="ventas" fill="#D4A843" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
 
         <section className="rounded-xl border border-border bg-card p-6">
           <h2 className="mb-4 font-heading text-lg font-bold">Productos más vendidos</h2>
@@ -128,6 +190,40 @@ function Dashboard() {
         </section>
 
         <section className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-heading text-lg font-bold flex items-center gap-2"><Receipt className="h-4 w-4" /> Historial de transacciones</h2>
+            <span className="text-xs text-muted-foreground">{periodOrders.length} total</span>
+          </div>
+          {pageOrders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sin transacciones en este periodo.</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground"><th className="py-2">Fecha</th><th className="py-2">Estado</th><th className="py-2 text-right">Total</th></tr></thead>
+                  <tbody>
+                    {pageOrders.map((o) => (
+                      <tr key={o.id} className="border-b border-border/50">
+                        <td className="py-2">{format(new Date(o.created_at), "dd MMM yyyy HH:mm", { locale: es })}</td>
+                        <td className="py-2"><span className="rounded-full bg-muted px-2 py-0.5 text-xs">{o.status}</span></td>
+                        <td className="py-2 text-right font-medium">${Number(o.total_final).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Página {page} de {totalPages}</span>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+                  <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Siguiente</Button>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-6">
           <h2 className="mb-4 font-heading text-lg font-bold">Información del negocio</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2"><Label>Nombre</Label><Input value={resto.name} onChange={(e) => setResto({ ...resto, name: e.target.value })} /></div>
@@ -144,11 +240,15 @@ function Dashboard() {
   );
 }
 
+function periodLabel(p: Period) {
+  return p === "today" ? "hoy" : p === "week" ? "últimos 7 días" : "últimos 30 días";
+}
+
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">{icon}{label}</div>
-      <div className="mt-2 font-heading text-2xl font-bold">{value}</div>
+      <div className="mt-2 font-heading text-2xl font-bold truncate" title={value}>{value}</div>
       {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
     </div>
   );
