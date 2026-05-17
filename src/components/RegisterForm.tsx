@@ -45,6 +45,7 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
   const [staffRole, setStaffRole] = useState<StaffRole>((invitation?.staff_role as StaffRole) ?? "empleado");
   const [businessName, setBusinessName] = useState("");
   const [businessDesc, setBusinessDesc] = useState("");
+  const [storeId, setStoreId] = useState("");
 
   const [busy, setBusy] = useState(false);
 
@@ -65,6 +66,10 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
       if (tab === "employee") {
         meta.store_name = storeName;
         meta.store_floor = floor;
+        meta.store_id = storeId;
+      }
+      if (tab === "customer") {
+        meta.store_id = storeId;
       }
       const { data, error } = await supabase.auth.signUp({
         email, password,
@@ -160,7 +165,11 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
           </div>
 
           <TabsContent value="customer" className="m-0">
-            <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+            <div className="space-y-2">
+              <Label htmlFor="cust-store-id">ID# de Tienda</Label>
+              <Input id="cust-store-id" required={tab === "customer"} value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ej: 1234" />
+            </div>
+            <p className="mt-3 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
               Como cliente puedes pedir comida y revisar tu historial. Si trabajas en City Market, elige <b>Trabajador</b> para tu descuento.
             </p>
           </TabsContent>
@@ -169,6 +178,10 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
             <div className="space-y-2">
               <Label htmlFor="store">Nombre de la tienda</Label>
               <Input id="store" required={tab === "employee"} value={storeName} onChange={(e) => setStoreName(e.target.value)} maxLength={80} disabled={!!invitation} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="emp-store-id">ID# de Tienda</Label>
+              <Input id="emp-store-id" required={tab === "employee"} value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ej: 1234" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

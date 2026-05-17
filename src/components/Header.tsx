@@ -15,6 +15,9 @@ import {
   Store,
   LogIn,
   UserPlus,
+  Package,
+  BadgePercent,
+  Settings,
 } from "lucide-react";
 import terrazaLogo from "@/assets/terraza-logo.png";
 
@@ -31,6 +34,7 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
     : roles.some((r) => r === "worker" || r === "supervisor" || r === "manager")
       ? "/employee"
       : "/account";
+  const isStaff = roles.some((r) => r === "worker" || r === "supervisor" || r === "manager");
 
   const close = () => setOpen(false);
 
@@ -64,6 +68,20 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
                 )}
                 {user && !roles.includes("restaurant_owner") && (
                   <NavItem to={panelHref} icon={LayoutDashboard} label="Mi panel" onClick={close} />
+                )}
+                {user && isStaff && (
+                  <div className="md:hidden">
+                    <div className="mt-2 px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Panel del trabajador</div>
+                    <Link to="/employee" search={{ tab: "historial" }} onClick={close} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                      <Package className="h-4 w-4" /> Historial de Pedidos
+                    </Link>
+                    <Link to="/employee" search={{ tab: "codigo" }} onClick={close} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                      <BadgePercent className="h-4 w-4" /> Código de Referido
+                    </Link>
+                    <Link to="/employee" search={{ tab: "config" }} onClick={close} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                      <Settings className="h-4 w-4" /> Configuración
+                    </Link>
+                  </div>
                 )}
                 <div className="my-2 h-px bg-border" />
                 {user ? (
