@@ -68,9 +68,6 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
         meta.store_floor = floor;
         meta.store_id = storeId;
       }
-      if (tab === "customer") {
-        meta.store_id = storeId;
-      }
       const { data, error } = await supabase.auth.signUp({
         email, password,
         options: { emailRedirectTo: `${window.location.origin}/menu`, data: meta },
