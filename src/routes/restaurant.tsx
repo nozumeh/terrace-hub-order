@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,8 @@ interface MenuItemFull { id: string; name: string; price: number; is_available: 
 function RestaurantPanel() {
   const { user, roles, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isChildRoute = location.pathname.replace(/\/$/, "") !== "/restaurant";
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
   const [menu, setMenu] = useState<Item[]>([]);
@@ -120,6 +122,10 @@ function RestaurantPanel() {
     localStorage.setItem("onboarding_seen", "1");
     setShowOnboarding(false);
   };
+
+  if (isChildRoute) {
+    return <Outlet />;
+  }
 
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
 
