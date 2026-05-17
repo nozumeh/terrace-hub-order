@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes, UserPlus } from "lucide-react";
+import { Loader2, Upload, Settings2, ChefHat, BarChart3, Bike, Boxes, UserPlus, CheckCircle2, Circle, X } from "lucide-react";
 import { toast } from "sonner";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { NotificationsBanner } from "@/components/NotificationsBanner";
@@ -100,6 +100,16 @@ function RestaurantPanel() {
   };
 
   const [importOpen, setImportOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("onboarding_seen")) {
+      setShowOnboarding(true);
+    }
+  }, []);
+  const dismissOnboarding = () => {
+    localStorage.setItem("onboarding_seen", "1");
+    setShowOnboarding(false);
+  };
 
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
 
@@ -108,12 +118,45 @@ function RestaurantPanel() {
       <Header />
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <NotificationsBanner />
-        {!isActive && restaurantId && (
-          <div className="rounded-xl border border-gold/40 bg-gold/5 p-5">
-            <div className="font-heading text-lg font-semibold">Tu negocio está pendiente de aprobación</div>
+        {showOnboarding && (
+          <div className="relative rounded-xl border border-gold/40 bg-gold/5 p-6">
+            <button
+              onClick={dismissOnboarding}
+              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="font-heading text-lg font-semibold">
+              ¡Bienvenido a Terraza Gourmet, Capital Burgers! 🎉
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Un administrador de City Market revisará tu solicitud. Podrás recibir pedidos en cuanto sea aprobada — recibirás una notificación aquí.
+              Tu restaurante ya está activo. Sigue estos pasos para empezar a recibir pedidos:
             </p>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-gold" />
+                <span>1. Restaurante registrado</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Circle className="h-4 w-4 text-muted-foreground" />
+                <span>2. Configura tu menú</span>
+                <Link to="/restaurant/inventory" className="ml-2 text-gold hover:underline">Ir a Inventario →</Link>
+              </li>
+              <li className="flex items-center gap-2">
+                <Circle className="h-4 w-4 text-muted-foreground" />
+                <span>3. Agrega tu primer Food Runner</span>
+                <Link to="/restaurant/runners" className="ml-2 text-gold hover:underline">Ir a Food Runners →</Link>
+              </li>
+              <li className="flex items-center gap-2">
+                <Circle className="h-4 w-4 text-muted-foreground" />
+                <span>4. Activa tu vista de cocina</span>
+                <Link to="/restaurant/kitchen" className="ml-2 text-gold hover:underline">Ir a Cocina →</Link>
+              </li>
+            </ul>
+            <Button onClick={dismissOnboarding} className="mt-5 bg-gold text-primary-foreground hover:bg-gold/90">
+              Entendido, empecemos
+            </Button>
           </div>
         )}
         <div>
