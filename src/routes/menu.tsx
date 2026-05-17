@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
-import { Plus, Loader2, ArrowLeft } from "lucide-react";
+import { Plus, Loader2, ArrowLeft, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -316,6 +316,7 @@ function MenuPage() {
               const outOfStock = i.stock_quantity !== null && i.stock_quantity <= 0;
               const unavailable = !i.is_available || outOfStock;
               const lowStock = i.stock_quantity !== null && i.stock_quantity > 0 && i.stock_quantity <= 5;
+              const customizable = needsCustomization(i);
               return (
                 <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
                   <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-background">
@@ -334,6 +335,11 @@ function MenuPage() {
                         Quedan {i.stock_quantity}
                       </div>
                     )}
+                    {!unavailable && customizable && (
+                      <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-background/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold ring-1 ring-gold/40">
+                        <Settings2 className="h-3 w-3" /> Personalizable
+                      </div>
+                    )}
                   </div>
                   <div className="font-medium">{i.name}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.description}</p>
@@ -349,7 +355,7 @@ function MenuPage() {
                       )}
                     </div>
                     <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="bg-gold text-primary-foreground hover:bg-gold/90">
-                      <Plus className="h-3 w-3" /> Agregar
+                      {customizable ? (<><Settings2 className="h-3 w-3" /> Personalizar</>) : (<><Plus className="h-3 w-3" /> Agregar</>)}
                     </Button>
                   </div>
                 </div>
