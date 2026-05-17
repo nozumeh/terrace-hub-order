@@ -20,6 +20,8 @@ interface Order {
 }
 interface OrderItem { id: string; order_id: string; name: string; quantity: number }
 interface Item { id: string; name: string; price: number; is_available: boolean; category: string }
+interface Category { id: string; name: string; display_order: number }
+interface MenuItemFull { id: string; name: string; price: number; is_available: boolean; category: string; category_id: string | null; image_url: string | null }
 
 function RestaurantPanel() {
   const { user, roles, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
@@ -27,6 +29,8 @@ function RestaurantPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
   const [menu, setMenu] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [menuFull, setMenuFull] = useState<MenuItemFull[]>([]);
   const [busy, setBusy] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState<boolean>(true);
@@ -51,13 +55,16 @@ function RestaurantPanel() {
     }
     if (!rid) { setBusy(false); return; }
 
-    const [{ data: o }, { data: m }] = await Promise.all([
+    const [{ data: o }, { data: m }, { data: cats }] = await Promise.all([
       supabase.from("orders").select("*").eq("restaurant_id", rid).neq("status", "delivered").order("created_at", { ascending: false }),
       supabase.from("menu_items").select("*").eq("restaurant_id", rid).order("category"),
+      supabase.from("menu_categories").select("id,name,display_order").eq("restaurant_id", rid).eq("is_active", true).order("display_order"),
     ]);
     const ords = (o ?? []) as Order[];
     setOrders(ords);
     setMenu((m ?? []) as Item[]);
+    setMenuFull((m ?? []) as MenuItemFull[]);
+    setCategories((cats ?? []) as Category[]);
     if (ords.length) {
       const { data: oi } = await supabase.from("order_items").select("*").in("order_id", ords.map((x) => x.id));
       const grouped: Record<string, OrderItem[]> = {};
@@ -83,7 +90,10 @@ function RestaurantPanel() {
     if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
     if (error) toast.error(error.message);
-    else { setMenu((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x)); }
+    else {
+      setMenu((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x));
+      setMenuFull((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x));
+    }
   };
 
   const savePrice = async (id: string) => {
@@ -239,27 +249,61 @@ function RestaurantPanel() {
               onImported={refresh}
             />
           )}
-          <ul className="divide-y divide-border">
-            {menu.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{m.name}</div>
-                  <div className="text-xs text-muted-foreground">{m.category}</div>
+          {menuFull.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+              Aún no tienes platillos en tu menú.{" "}
+              <Link to="/restaurant/menu" className="text-gold hover:underline">Agregar el primero →</Link>
+            </div>
+          ) : (
+            (() => {
+              const groups = new Map<string, { name: string; items: MenuItemFull[] }>();
+              categories.forEach((c) => groups.set(c.id, { name: c.name, items: [] }));
+              const uncategorized: MenuItemFull[] = [];
+              menuFull.forEach((it) => {
+                if (it.category_id && groups.has(it.category_id)) groups.get(it.category_id)!.items.push(it);
+                else {
+                  const key = `text:${it.category || "Otros"}`;
+                  if (!groups.has(key)) groups.set(key, { name: it.category || "Otros", items: [] });
+                  groups.get(key)!.items.push(it);
+                }
+              });
+              return (
+                <div className="space-y-6">
+                  {Array.from(groups.entries()).filter(([, g]) => g.items.length > 0).map(([key, g]) => (
+                    <div key={key}>
+                      <h3 className="mb-3 font-heading text-sm font-semibold uppercase tracking-wider text-gold">{g.name}</h3>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {g.items.map((m) => (
+                          <div key={m.id} className="flex gap-3 rounded-lg border border-border bg-background p-3">
+                            {m.image_url ? (
+                              <img src={m.image_url} alt={m.name} className="h-16 w-16 shrink-0 rounded-md object-cover" />
+                            ) : (
+                              <div className="h-16 w-16 shrink-0 rounded-md bg-muted" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium">{m.name}</div>
+                              {editingPrice[m.id] !== undefined ? (
+                                <div className="mt-1 flex items-center gap-1">
+                                  <Input type="number" step="0.01" className="h-7 w-20" value={editingPrice[m.id]} onChange={(e) => setEditingPrice((p) => ({ ...p, [m.id]: e.target.value }))} />
+                                  <Button size="sm" className="h-7 px-2" onClick={() => savePrice(m.id)}>OK</Button>
+                                </div>
+                              ) : (
+                                <button onClick={() => setEditingPrice((p) => ({ ...p, [m.id]: String(m.price) }))} className="text-sm font-semibold text-gold hover:underline">${Number(m.price).toFixed(2)}</button>
+                              )}
+                              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                                <Switch checked={m.is_available} onCheckedChange={() => toggleAvailable(m.id, m.is_available)} />
+                                {m.is_available ? "Disponible" : "Agotado"}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {editingPrice[m.id] !== undefined ? (
-                  <div className="flex items-center gap-2">
-                    <Input type="number" step="0.01" className="h-8 w-24" value={editingPrice[m.id]} onChange={(e) => setEditingPrice((p) => ({ ...p, [m.id]: e.target.value }))} />
-                    <Button size="sm" onClick={() => savePrice(m.id)}>OK</Button>
-                  </div>
-                ) : (
-                  <button onClick={() => setEditingPrice((p) => ({ ...p, [m.id]: String(m.price) }))} className="text-sm font-semibold text-gold hover:underline">${Number(m.price).toFixed(2)}</button>
-                )}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  Disponible <Switch checked={m.is_available} onCheckedChange={() => toggleAvailable(m.id, m.is_available)} />
-                </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })()
+          )}
         </section>
       </div>
     </div>
