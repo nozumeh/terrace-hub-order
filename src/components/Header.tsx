@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -27,7 +28,18 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [restaurantName, setRestaurantName] = useState<string | null>(null);
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (!user || !roles.includes("restaurant_owner")) { setRestaurantName(null); return; }
+    supabase
+      .from("restaurants")
+      .select("name")
+      .eq("owner_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setRestaurantName((data as { name: string } | null)?.name ?? null));
+  }, [user, roles]);
 
   const panelHref: "/restaurant" | "/employee" | "/account" = roles.includes("restaurant_owner")
     ? "/restaurant"
@@ -64,7 +76,7 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
                   <NavItem to="/admin" icon={Shield} label="Admin" highlight onClick={close} />
                 )}
                 {roles.includes("restaurant_owner") && (
-                  <NavItem to="/restaurant" icon={Store} label="Mi restaurante" highlight onClick={close} />
+                  <NavItem to="/restaurant" icon={Store} label={restaurantName || "Mi restaurante"} highlight onClick={close} />
                 )}
                 {user && !roles.includes("restaurant_owner") && (
                   <NavItem to={panelHref} icon={LayoutDashboard} label="Mi panel" onClick={close} />
@@ -115,7 +127,9 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
           <Link to="/restaurants" className="text-muted-foreground hover:text-foreground">Restaurantes</Link>
           <Link to="/" hash="como-funciona" className="text-muted-foreground hover:text-foreground">Cómo funciona</Link>
           {roles.includes("admin") && <Link to="/admin" className="text-gold hover:text-gold/80">Admin</Link>}
-          {roles.includes("restaurant_owner") && <Link to="/restaurant" className="text-gold hover:text-gold/80">Mi Restaurante</Link>}
+          {roles.includes("restaurant_owner") && (
+            <Link to="/restaurant" className="text-gold hover:text-gold/80">{restaurantName || "Mi Restaurante"}</Link>
+          )}
           {user && !roles.includes("restaurant_owner") && (
             <Link to={panelHref} className="text-muted-foreground hover:text-foreground">Mi panel</Link>
           )}
