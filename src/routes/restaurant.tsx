@@ -249,27 +249,61 @@ function RestaurantPanel() {
               onImported={refresh}
             />
           )}
-          <ul className="divide-y divide-border">
-            {menu.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{m.name}</div>
-                  <div className="text-xs text-muted-foreground">{m.category}</div>
+          {menuFull.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+              Aún no tienes platillos en tu menú.{" "}
+              <Link to="/restaurant/menu" className="text-gold hover:underline">Agregar el primero →</Link>
+            </div>
+          ) : (
+            (() => {
+              const groups = new Map<string, { name: string; items: MenuItemFull[] }>();
+              categories.forEach((c) => groups.set(c.id, { name: c.name, items: [] }));
+              const uncategorized: MenuItemFull[] = [];
+              menuFull.forEach((it) => {
+                if (it.category_id && groups.has(it.category_id)) groups.get(it.category_id)!.items.push(it);
+                else {
+                  const key = `text:${it.category || "Otros"}`;
+                  if (!groups.has(key)) groups.set(key, { name: it.category || "Otros", items: [] });
+                  groups.get(key)!.items.push(it);
+                }
+              });
+              return (
+                <div className="space-y-6">
+                  {Array.from(groups.entries()).filter(([, g]) => g.items.length > 0).map(([key, g]) => (
+                    <div key={key}>
+                      <h3 className="mb-3 font-heading text-sm font-semibold uppercase tracking-wider text-gold">{g.name}</h3>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {g.items.map((m) => (
+                          <div key={m.id} className="flex gap-3 rounded-lg border border-border bg-background p-3">
+                            {m.image_url ? (
+                              <img src={m.image_url} alt={m.name} className="h-16 w-16 shrink-0 rounded-md object-cover" />
+                            ) : (
+                              <div className="h-16 w-16 shrink-0 rounded-md bg-muted" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium">{m.name}</div>
+                              {editingPrice[m.id] !== undefined ? (
+                                <div className="mt-1 flex items-center gap-1">
+                                  <Input type="number" step="0.01" className="h-7 w-20" value={editingPrice[m.id]} onChange={(e) => setEditingPrice((p) => ({ ...p, [m.id]: e.target.value }))} />
+                                  <Button size="sm" className="h-7 px-2" onClick={() => savePrice(m.id)}>OK</Button>
+                                </div>
+                              ) : (
+                                <button onClick={() => setEditingPrice((p) => ({ ...p, [m.id]: String(m.price) }))} className="text-sm font-semibold text-gold hover:underline">${Number(m.price).toFixed(2)}</button>
+                              )}
+                              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                                <Switch checked={m.is_available} onCheckedChange={() => toggleAvailable(m.id, m.is_available)} />
+                                {m.is_available ? "Disponible" : "Agotado"}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {editingPrice[m.id] !== undefined ? (
-                  <div className="flex items-center gap-2">
-                    <Input type="number" step="0.01" className="h-8 w-24" value={editingPrice[m.id]} onChange={(e) => setEditingPrice((p) => ({ ...p, [m.id]: e.target.value }))} />
-                    <Button size="sm" onClick={() => savePrice(m.id)}>OK</Button>
-                  </div>
-                ) : (
-                  <button onClick={() => setEditingPrice((p) => ({ ...p, [m.id]: String(m.price) }))} className="text-sm font-semibold text-gold hover:underline">${Number(m.price).toFixed(2)}</button>
-                )}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  Disponible <Switch checked={m.is_available} onCheckedChange={() => toggleAvailable(m.id, m.is_available)} />
-                </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })()
+          )}
         </section>
       </div>
     </div>
