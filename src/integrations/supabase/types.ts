@@ -179,21 +179,27 @@ export type Database = {
       menu_categories: {
         Row: {
           created_at: string
+          display_order: number
           id: string
+          is_active: boolean
           name: string
           restaurant_id: string
           sort_order: number
         }
         Insert: {
           created_at?: string
+          display_order?: number
           id?: string
+          is_active?: boolean
           name: string
           restaurant_id: string
           sort_order?: number
         }
         Update: {
           created_at?: string
+          display_order?: number
           id?: string
+          is_active?: boolean
           name?: string
           restaurant_id?: string
           sort_order?: number
