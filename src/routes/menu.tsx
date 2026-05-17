@@ -7,10 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
-import { Plus, Loader2, ArrowLeft, Settings2 } from "lucide-react";
+import { Plus, Minus, Loader2, ArrowLeft, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -60,6 +61,7 @@ function MenuPage() {
   const [variantChoice, setVariantChoice] = useState<string>("");
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
+  const [qty, setQty] = useState<number>(1);
   const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
   const [navMs, setNavMs] = useState<number | null>(null);
 
@@ -171,24 +173,11 @@ function MenuPage() {
 
   const handleAdd = (i: Item) => {
     if (!i.is_available) return;
-    if (needsCustomization(i)) {
-      setVariantChoice(Array.isArray(i.options) && i.options.length > 0 ? i.options[0] : "");
-      setChosenExtras(new Set());
-      setChosenRemoved(new Set());
-      setCustomizeItem(i);
-      return;
-    }
-    add({
-      menu_item_id: i.id,
-      restaurant_id: i.restaurant_id,
-      name: i.name,
-      base_price: Number(i.price),
-      unit_price: Number(i.price),
-      variant: null,
-      extras: [],
-      removed: [],
-    });
-    toast.success(`${i.name} agregado`);
+    setVariantChoice(Array.isArray(i.options) && i.options.length > 0 ? i.options[0] : "");
+    setChosenExtras(new Set());
+    setChosenRemoved(new Set());
+    setQty(1);
+    setCustomizeItem(i);
   };
 
   const closeCustomize = () => {
@@ -196,6 +185,7 @@ function MenuPage() {
     setVariantChoice("");
     setChosenExtras(new Set());
     setChosenRemoved(new Set());
+    setQty(1);
   };
 
   const toggleSet = (set: Set<string>, id: string) => {
@@ -209,7 +199,7 @@ function MenuPage() {
     const extras = (customizeItem.menu_item_extras ?? []).filter((e) => chosenExtras.has(e.id));
     const removed = (customizeItem.menu_item_removable_options ?? []).filter((r) => chosenRemoved.has(r.id));
     const extrasPrice = extras.reduce((a, e) => a + Number(e.price), 0);
-    add({
+    const payload = {
       menu_item_id: customizeItem.id,
       restaurant_id: customizeItem.restaurant_id,
       name: customizeItem.name,
@@ -218,8 +208,9 @@ function MenuPage() {
       variant: variantChoice || null,
       extras: extras.map((e) => ({ id: e.id, name: e.name, price: Number(e.price) })),
       removed: removed.map((r) => ({ id: r.id, name: r.name })),
-    });
-    toast.success(`${customizeItem.name} agregado`);
+    };
+    for (let n = 0; n < qty; n++) add(payload);
+    toast.success(`${customizeItem.name} agregado${qty > 1 ? ` ×${qty}` : ""}`);
     closeCustomize();
   };
 
@@ -366,66 +357,132 @@ function MenuPage() {
       </div>
 
       <Dialog open={!!customizeItem} onOpenChange={(v) => { if (!v) closeCustomize(); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md p-0 overflow-hidden">
           <DialogHeader>
-            <DialogTitle>{customizeItem?.name}</DialogTitle>
+            <DialogTitle className="sr-only">{customizeItem?.name}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto">
-            {Array.isArray(customizeItem?.options) && customizeItem!.options!.length > 0 && (
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opción</div>
-                <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
-                  {(customizeItem?.options ?? []).map((opt) => (
-                    <Label key={opt} htmlFor={`opt-${opt}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
-                      <RadioGroupItem id={`opt-${opt}`} value={opt} />
-                      <span className="text-sm">{opt}</span>
-                    </Label>
-                  ))}
-                </RadioGroup>
-              </div>
-            )}
-
-            {(customizeItem?.menu_item_extras?.length ?? 0) > 0 && (
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Extras</div>
-                <div className="space-y-2">
-                  {customizeItem!.menu_item_extras.map((e) => (
-                    <Label key={e.id} htmlFor={`ex-${e.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
-                      <Checkbox
-                        id={`ex-${e.id}`}
-                        checked={chosenExtras.has(e.id)}
-                        onCheckedChange={() => setChosenExtras((s) => toggleSet(s, e.id))}
-                      />
-                      <span className="flex-1 text-sm">{e.name}</span>
-                      <span className="text-sm text-gold">+${Number(e.price).toFixed(2)}</span>
-                    </Label>
-                  ))}
+          {customizeItem && (() => {
+            const it = customizeItem;
+            const basePrice = Number(it.price);
+            const extrasPrice = (it.menu_item_extras ?? [])
+              .filter((e) => chosenExtras.has(e.id))
+              .reduce((a, e) => a + Number(e.price), 0);
+            const unit = basePrice + extrasPrice;
+            const total = unit * qty;
+            const hasOptions = Array.isArray(it.options) && it.options.length > 0;
+            const hasExtras = (it.menu_item_extras?.length ?? 0) > 0;
+            const hasRemovables = (it.menu_item_removable_options?.length ?? 0) > 0;
+            return (
+              <>
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-background">
+                  {it.image_url ? (
+                    <img src={it.image_url} alt={it.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-6xl">🍔</div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent p-4">
+                    <h2 className="font-heading text-xl font-bold">{it.name}</h2>
+                    <div className="mt-0.5 text-sm font-semibold text-gold">${basePrice.toFixed(2)}</div>
+                  </div>
                 </div>
-              </div>
-            )}
+                <div className="max-h-[50vh] space-y-4 overflow-y-auto px-5 py-4">
+                  {it.description && (
+                    <p className="text-sm leading-relaxed text-muted-foreground">{it.description}</p>
+                  )}
 
-            {(customizeItem?.menu_item_removable_options?.length ?? 0) > 0 && (
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quitar ingredientes</div>
-                <div className="space-y-2">
-                  {customizeItem!.menu_item_removable_options.map((r) => (
-                    <Label key={r.id} htmlFor={`rm-${r.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
-                      <Checkbox
-                        id={`rm-${r.id}`}
-                        checked={chosenRemoved.has(r.id)}
-                        onCheckedChange={() => setChosenRemoved((s) => toggleSet(s, r.id))}
-                      />
-                      <span className="text-sm">Sin {r.name}</span>
-                    </Label>
-                  ))}
+                  {hasOptions && (
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opción</div>
+                      <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
+                        {(it.options ?? []).map((opt) => (
+                          <Label key={opt} htmlFor={`opt-${opt}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                            <RadioGroupItem id={`opt-${opt}`} value={opt} />
+                            <span className="text-sm">{opt}</span>
+                          </Label>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  )}
+
+                  {(hasExtras || hasRemovables) && (
+                    <Accordion type="multiple" className="w-full">
+                      {hasExtras && (
+                        <AccordionItem value="extras" className="border-border">
+                          <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider text-foreground hover:no-underline">
+                            <span className="flex items-center gap-2">
+                              <Plus className="h-3.5 w-3.5 text-gold" /> Agregar extras
+                              {chosenExtras.size > 0 && (
+                                <span className="ml-1 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{chosenExtras.size}</span>
+                              )}
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-2 pt-1">
+                              {it.menu_item_extras.map((e) => (
+                                <Label key={e.id} htmlFor={`ex-${e.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                                  <Checkbox
+                                    id={`ex-${e.id}`}
+                                    checked={chosenExtras.has(e.id)}
+                                    onCheckedChange={() => setChosenExtras((s) => toggleSet(s, e.id))}
+                                  />
+                                  <span className="flex-1 text-sm">{e.name}</span>
+                                  <span className="text-sm font-medium text-gold">+${Number(e.price).toFixed(2)}</span>
+                                </Label>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                      {hasRemovables && (
+                        <AccordionItem value="remove" className="border-border">
+                          <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider text-foreground hover:no-underline">
+                            <span className="flex items-center gap-2">
+                              <Minus className="h-3.5 w-3.5 text-destructive" /> Quitar ingredientes
+                              {chosenRemoved.size > 0 && (
+                                <span className="ml-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">{chosenRemoved.size}</span>
+                              )}
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-2 pt-1">
+                              {it.menu_item_removable_options.map((r) => (
+                                <Label key={r.id} htmlFor={`rm-${r.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card p-3 hover:border-gold/40">
+                                  <Checkbox
+                                    id={`rm-${r.id}`}
+                                    checked={chosenRemoved.has(r.id)}
+                                    onCheckedChange={() => setChosenRemoved((s) => toggleSet(s, r.id))}
+                                  />
+                                  <span className="text-sm">Sin {r.name}</span>
+                                </Label>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                    </Accordion>
+                  )}
+
+                  {!hasOptions && !hasExtras && !hasRemovables && (
+                    <p className="text-xs text-muted-foreground">Este plato no tiene opciones configurables.</p>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeCustomize}>Cancelar</Button>
-            <Button onClick={confirmCustomize} className="bg-gold text-primary-foreground hover:bg-gold/90">Agregar</Button>
-          </DialogFooter>
+                <DialogFooter className="flex-row items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-6 text-center font-semibold">{qty}</span>
+                    <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setQty((q) => q + 1)} aria-label="Sumar">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button onClick={confirmCustomize} className="flex-1 bg-gold text-primary-foreground hover:bg-gold/90">
+                    Agregar · ${total.toFixed(2)}
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
