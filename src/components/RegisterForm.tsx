@@ -45,6 +45,7 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
   const [staffRole, setStaffRole] = useState<StaffRole>((invitation?.staff_role as StaffRole) ?? "empleado");
   const [businessName, setBusinessName] = useState("");
   const [businessDesc, setBusinessDesc] = useState("");
+  const [storeId, setStoreId] = useState("");
 
   const [busy, setBusy] = useState(false);
 
@@ -65,6 +66,10 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
       if (tab === "employee") {
         meta.store_name = storeName;
         meta.store_floor = floor;
+        meta.store_id = storeId;
+      }
+      if (tab === "customer") {
+        meta.store_id = storeId;
       }
       const { data, error } = await supabase.auth.signUp({
         email, password,
