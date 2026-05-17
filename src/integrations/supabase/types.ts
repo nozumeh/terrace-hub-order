@@ -480,6 +480,7 @@ export type Database = {
           phone: string | null
           promo_code: string | null
           store_floor: string | null
+          store_id: string | null
           store_name: string | null
         }
         Insert: {
@@ -492,6 +493,7 @@ export type Database = {
           phone?: string | null
           promo_code?: string | null
           store_floor?: string | null
+          store_id?: string | null
           store_name?: string | null
         }
         Update: {
@@ -504,6 +506,7 @@ export type Database = {
           phone?: string | null
           promo_code?: string | null
           store_floor?: string | null
+          store_id?: string | null
           store_name?: string | null
         }
         Relationships: []
