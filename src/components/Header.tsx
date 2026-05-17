@@ -115,7 +115,7 @@ export function Header({ onCartClick }: { onCartClick?: () => void }) {
           <Link to="/restaurants" className="text-muted-foreground hover:text-foreground">Restaurantes</Link>
           <Link to="/" hash="como-funciona" className="text-muted-foreground hover:text-foreground">Cómo funciona</Link>
           {roles.includes("admin") && <Link to="/admin" className="text-gold hover:text-gold/80">Admin</Link>}
-          {roles.includes("restaurant_owner") && <Link to="/restaurant" className="text-gold hover:text-gold/80">Restaurante</Link>}
+          {roles.includes("restaurant_owner") && <Link to="/restaurant" className="text-gold hover:text-gold/80">Mi Restaurante</Link>}
           {user && !roles.includes("restaurant_owner") && (
             <Link to={panelHref} className="text-muted-foreground hover:text-foreground">Mi panel</Link>
           )}
