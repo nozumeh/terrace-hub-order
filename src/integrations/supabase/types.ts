@@ -152,8 +152,10 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          notes: string | null
           phone: string
           restaurant_id: string
+          schedule: string | null
           user_id: string | null
         }
         Insert: {
@@ -161,8 +163,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          notes?: string | null
           phone?: string
           restaurant_id: string
+          schedule?: string | null
           user_id?: string | null
         }
         Update: {
@@ -170,8 +174,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          notes?: string | null
           phone?: string
           restaurant_id?: string
+          schedule?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -558,6 +564,85 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      runner_shifts: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          id: string
+          runner_id: string
+          shift_date: string
+          status: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          runner_id: string
+          shift_date?: string
+          status?: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          runner_id?: string
+          shift_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "runner_shifts_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "food_runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_members: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          restaurant_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          restaurant_id: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          restaurant_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_members_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
