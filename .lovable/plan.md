@@ -1,60 +1,91 @@
-# Plan: Tres tipos de cuenta + paneles dedicados
+## Plan: 5 paneles del owner
 
-## 1. Header
-- Mostrar **Entrar** y **Registrarse** cuando no hay sesión (hoy solo aparece Entrar).
-- Cuando hay sesión, agregar enlace a "Mi panel" que redirige según rol:
-  - cliente → `/account`
-  - empleado/supervisor/gerente → `/employee`
-  - dueño de restaurante → `/restaurant`
+Los 5 paneles ya existen como rutas separadas (`/restaurant/dashboard`, `inventory`, `runners`, `employees`, `kitchen`). Vamos a reemplazar el contenido de cada uno para cumplir el spec.
 
-## 2. Registro: una sola página `/register` con 3 pestañas
-Pestañas: **Cliente**, **Trabajador City Market**, **Negocio / Restaurante**.
+### Fase 1 — Prioridad (Vista Cocina + Inventario)
 
-- **Cliente**: nombre, email, contraseña. Sin tienda ni piso.
-- **Trabajador City Market**: nombre, email, contraseña, nombre de tienda, piso, **rol en la tienda** (selector: `empleado`, `gerente`, `dueño`). Genera código promocional automático y aplica `is_employee=true`.
-- **Negocio / Restaurante**: nombre del responsable, email, contraseña, **nombre del negocio**, descripción corta, teléfono. Crea el `restaurants` row (pendiente de aprobación admin = `is_active=false`) y asigna rol `restaurant_owner`.
+**Vista Cocina (`/restaurant/kitchen`)** — reescribir
+- Layout fullscreen negro, header con reloj y contadores (🔴 activos / 🟡 espera)
+- Grid de tickets (2 col desktop / 1 móvil) con destaque por antigüedad:
+  - <15 min: borde gris
+  - 15–30 min: borde naranja `#E8872A` + "URGENTE"
+  - >30 min: borde rojo `#F85149` + pulse + "CRÍTICO"
+- Botón único de avance según status (Empezar / Listo / Enviado)
+- Auto-refresh 15s + realtime (ya existe). Animación verde al entregar.
+- Empty state grande "✓ Todo al día"
 
-Toda la lógica corre en un `createServerFn` (admin client) que: crea usuario, inserta profile, inserta user_roles, y para restaurante inserta restaurants.owner_id.
+**Inventario (`/restaurant/inventory`)** — reescribir
+- Buscador, tabs por categoría (Todos + categorías dinámicas)
+- Lista tipo tabla con imagen, nombre, descripción, precio, toggle HAY/AGOTADO
+- Side panel deslizable (Sheet) para editar ítem:
+  - Info básica + imagen (upload a bucket `menu-images`)
+  - Extras (CRUD sobre `menu_item_extras`) + chips de quick-add
+  - Removibles (CRUD sobre `menu_item_removable_options`) + custom
+  - Footer sticky: Cancelar / Guardar / Eliminar
+- Botón "+ Incluir Inventario" abre el mismo panel vacío
+- "Importar CSV" reutiliza el componente existente
 
-## 3. Panel empleado `/employee` (simple)
-Tres secciones en una sola página:
-- **Mis órdenes** (lista de pedidos propios con estado).
-- **Mi perfil** (nombre, tienda, piso, rol; editable).
-- **Mi código promocional** (mostrar el código, copiar al clic).
+### Fase 2 — Food Runners + Empleados
 
-## 4. Panel restaurante `/restaurant` (ampliado)
-Tabs adicionales sobre lo que ya existe:
-- **Resumen / Promocional**: ventas hoy / semana / mes, top 5 productos, ingresos totales.
-- **Productos vendidos**: tabla agrupada por item con cantidad y revenue, filtros por fecha.
-- **Información del negocio**: editar nombre, descripción, logo, teléfono, horarios.
-- **Inventario**: ya existe stock_quantity por item — agregar vista dedicada con ajuste rápido (+/-, set valor) y umbral de bajo stock.
-- **Food runners**: lista de runners (nuevo rol `food_runner`), asignar pedidos en preparación a un runner; estado `out_for_delivery` registra runner_id y timestamp.
-- **Cocina** (ya existe).
-- **Menú** (ya existe).
+**Food Runners (`/restaurant/runners`)** — reescribir
+- Nueva tabla `runner_shifts` (migration)
+- Card "Runner de hoy" con asignación / check-in / check-out
+- Form registrar turno (date + runner)
+- Roster con CRUD + toggle activo + contador de turnos del mes
+- Modal agregar runner (nombre, teléfono, horario, notas)
+- Tabla historial últimos 30 días
 
-## 5. Panel cliente `/account` (mínimo)
-- Mis pedidos y datos básicos (separa al cliente del empleado para que no vea descuento).
+**Empleados (`/restaurant/employees`)** — reescribir
+- Nueva tabla `staff_members` (migration) — separada de invitaciones
+- Roster: ID Empleado, Nombre, Cargo, Teléfono, Estado, Acciones
+- Modal "Agregar empleado" con auto-sugerencia `EMP-XXXX`
+- Toggle activo, editar
+- Empty state con copy del spec
 
-## Cambios técnicos
+### Fase 3 — Resumen (Analytics)
 
-### Base de datos
-- `app_role`: añadir valores `customer`, `manager`, `food_runner` (ya existen `worker`, `supervisor`, `restaurant_owner`, `admin`).
-- `profiles`: añadir `phone text`, `promo_code text unique` (autogenerado para empleados via trigger), `account_type text check in ('customer','employee','restaurant_owner')`.
-- `restaurants`: añadir `phone text`, `hours jsonb`, dejar `is_active` como aprobación admin.
-- Nueva tabla `food_runners` (id, user_id, restaurant_id, name, phone, active).
-- `orders`: añadir `runner_id uuid null`, `out_for_delivery_at timestamptz null`.
-- RLS: empleado lee solo su perfil/órdenes; runner lee órdenes asignadas; owner lee todo de su restaurante.
-- Trigger `on_auth_user_created` para crear profile + promo_code automático.
+**Resumen (`/restaurant/dashboard`)** — reescribir
+- Selector de período (Hoy / Semana / Mes)
+- 4 KPI cards: Ventas, Pedidos, Ticket promedio, Top item
+- BarChart de `recharts` "Ventas por día" (7 o 30 días)
+- Bloque "Órdenes activas" con badges
+- Tabla "Historial de transacciones" con paginación "Cargar 20 más"
 
-### Frontend
-- Nuevo `RegisterTabs` en `/register`.
-- Nuevas rutas: `src/routes/employee.tsx`, `src/routes/account.tsx`, `src/routes/restaurant.dashboard.tsx`, `src/routes/restaurant.inventory.tsx`, `src/routes/restaurant.runners.tsx`.
-- Header actualizado.
-- Server fn `signUpAccount({ type, ... })` con admin client para crear todo atómicamente.
+### Cambios de base de datos (migration única)
 
-## Lo que NO se incluye
-- Notificaciones push/SMS al runner.
-- Pasarela de pago real.
-- Sistema de turnos para empleados.
+```sql
+CREATE TABLE public.runner_shifts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  runner_id uuid NOT NULL REFERENCES public.food_runners(id) ON DELETE CASCADE,
+  shift_date date NOT NULL DEFAULT CURRENT_DATE,
+  check_in timestamptz, check_out timestamptz,
+  status text NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','active','completed')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 
-¿Apruebas el plan así, o ajustamos algo (por ejemplo: solo 2 tipos en vez de 3, recortar el panel de restaurante, dejar food runners para otra iteración)?
+CREATE TABLE public.staff_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  role text NOT NULL CHECK (role IN ('cocinero','cajero','mesero','supervisor','otro')),
+  employee_id text NOT NULL,
+  phone text, is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (restaurant_id, employee_id)
+);
+
+ALTER TABLE public.food_runners ADD COLUMN IF NOT EXISTS schedule text, ADD COLUMN IF NOT EXISTS notes text;
+```
++ RLS owner-manage en ambas tablas.
+
+### Notas técnicas
+- `restaurantId` se obtiene en cada panel vía `restaurants.owner_id = auth.uid()` (ya funciona)
+- Toggle disponibilidad ya es realtime en `menu_items.is_available`
+- `recharts` ya está instalado
+- Uso `Sheet` de shadcn para el side-panel de edición
+- Mantengo el `Header` y `NotificationsBanner` en todos
+
+### Confirma antes de empezar
+1. ¿Procedo con las 3 fases en orden (cocina+inventario primero)?
+2. ¿OK con las dos tablas nuevas (`runner_shifts`, `staff_members`)?
+3. La tabla `orders` no tiene columna `total` simple — uso `total_final`. ¿OK?
