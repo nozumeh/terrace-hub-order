@@ -20,6 +20,8 @@ interface Order {
 }
 interface OrderItem { id: string; order_id: string; name: string; quantity: number }
 interface Item { id: string; name: string; price: number; is_available: boolean; category: string }
+interface Category { id: string; name: string; display_order: number }
+interface MenuItemFull { id: string; name: string; price: number; is_available: boolean; category: string; category_id: string | null; image_url: string | null }
 
 function RestaurantPanel() {
   const { user, roles, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
@@ -27,6 +29,8 @@ function RestaurantPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
   const [menu, setMenu] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [menuFull, setMenuFull] = useState<MenuItemFull[]>([]);
   const [busy, setBusy] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState<boolean>(true);
@@ -51,13 +55,16 @@ function RestaurantPanel() {
     }
     if (!rid) { setBusy(false); return; }
 
-    const [{ data: o }, { data: m }] = await Promise.all([
+    const [{ data: o }, { data: m }, { data: cats }] = await Promise.all([
       supabase.from("orders").select("*").eq("restaurant_id", rid).neq("status", "delivered").order("created_at", { ascending: false }),
       supabase.from("menu_items").select("*").eq("restaurant_id", rid).order("category"),
+      supabase.from("menu_categories").select("id,name,display_order").eq("restaurant_id", rid).eq("is_active", true).order("display_order"),
     ]);
     const ords = (o ?? []) as Order[];
     setOrders(ords);
     setMenu((m ?? []) as Item[]);
+    setMenuFull((m ?? []) as MenuItemFull[]);
+    setCategories((cats ?? []) as Category[]);
     if (ords.length) {
       const { data: oi } = await supabase.from("order_items").select("*").in("order_id", ords.map((x) => x.id));
       const grouped: Record<string, OrderItem[]> = {};
@@ -83,7 +90,10 @@ function RestaurantPanel() {
     if (!requireRestaurantOwner()) return;
     const { error } = await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
     if (error) toast.error(error.message);
-    else { setMenu((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x)); }
+    else {
+      setMenu((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x));
+      setMenuFull((m) => m.map((x) => x.id === id ? { ...x, is_available: !current } : x));
+    }
   };
 
   const savePrice = async (id: string) => {
