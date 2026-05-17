@@ -101,7 +101,7 @@ function Landing() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              { n: "01", icon: UtensilsCrossed, t: "Elige tu comida", d: "Explora el menú de Capital Burgers y Terraza Gourmet." },
+              { n: "01", icon: UtensilsCrossed, t: "Elige tu comida", d: "Explora el menú de los restaurantes disponibles en City Market." },
               { n: "02", icon: MousePointerClick, t: "Haz tu pedido", d: "Un click. Confirma tu tienda y piso." },
               { n: "03", icon: Bike, t: "Te lo llevamos", d: "El food runner entrega directo a tu tienda." },
             ].map((s) => (
@@ -160,7 +160,11 @@ function Landing() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <RestoCard name="Capital Burgers" tag="Hamburguesas · Combos · Sides" desc="Carne 100% res, pollo crispy y opciones veggie. Comida hecha al momento." logo={capitalBurgersLogo} />
-            <RestoCard name="Terraza Gourmet" tag="Próximamente más opciones" desc="Comida casera del día — fresca, rápida y siempre del mismo edificio." />
+            <div className="rounded-xl border border-dashed border-border bg-card/40 p-6">
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">Próximamente</div>
+              <div className="mt-1 font-heading text-2xl font-bold text-muted-foreground">Más restaurantes</div>
+              <p className="mt-4 text-sm text-muted-foreground">Nuevos negocios se sumarán pronto a la plataforma.</p>
+            </div>
           </div>
         </div>
       </section>
