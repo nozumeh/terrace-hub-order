@@ -7,10 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
-import { Plus, Loader2, ArrowLeft, Settings2 } from "lucide-react";
+import { Plus, Minus, Loader2, ArrowLeft, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -60,6 +61,7 @@ function MenuPage() {
   const [variantChoice, setVariantChoice] = useState<string>("");
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
+  const [qty, setQty] = useState<number>(1);
   const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
   const [navMs, setNavMs] = useState<number | null>(null);
 
@@ -171,24 +173,11 @@ function MenuPage() {
 
   const handleAdd = (i: Item) => {
     if (!i.is_available) return;
-    if (needsCustomization(i)) {
-      setVariantChoice(Array.isArray(i.options) && i.options.length > 0 ? i.options[0] : "");
-      setChosenExtras(new Set());
-      setChosenRemoved(new Set());
-      setCustomizeItem(i);
-      return;
-    }
-    add({
-      menu_item_id: i.id,
-      restaurant_id: i.restaurant_id,
-      name: i.name,
-      base_price: Number(i.price),
-      unit_price: Number(i.price),
-      variant: null,
-      extras: [],
-      removed: [],
-    });
-    toast.success(`${i.name} agregado`);
+    setVariantChoice(Array.isArray(i.options) && i.options.length > 0 ? i.options[0] : "");
+    setChosenExtras(new Set());
+    setChosenRemoved(new Set());
+    setQty(1);
+    setCustomizeItem(i);
   };
 
   const closeCustomize = () => {
@@ -196,6 +185,7 @@ function MenuPage() {
     setVariantChoice("");
     setChosenExtras(new Set());
     setChosenRemoved(new Set());
+    setQty(1);
   };
 
   const toggleSet = (set: Set<string>, id: string) => {
@@ -209,7 +199,7 @@ function MenuPage() {
     const extras = (customizeItem.menu_item_extras ?? []).filter((e) => chosenExtras.has(e.id));
     const removed = (customizeItem.menu_item_removable_options ?? []).filter((r) => chosenRemoved.has(r.id));
     const extrasPrice = extras.reduce((a, e) => a + Number(e.price), 0);
-    add({
+    const payload = {
       menu_item_id: customizeItem.id,
       restaurant_id: customizeItem.restaurant_id,
       name: customizeItem.name,
@@ -218,8 +208,9 @@ function MenuPage() {
       variant: variantChoice || null,
       extras: extras.map((e) => ({ id: e.id, name: e.name, price: Number(e.price) })),
       removed: removed.map((r) => ({ id: r.id, name: r.name })),
-    });
-    toast.success(`${customizeItem.name} agregado`);
+    };
+    for (let n = 0; n < qty; n++) add(payload);
+    toast.success(`${customizeItem.name} agregado${qty > 1 ? ` ×${qty}` : ""}`);
     closeCustomize();
   };
 
