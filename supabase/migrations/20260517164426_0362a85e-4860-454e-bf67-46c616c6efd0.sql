@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Staff public read active" ON public.staff_members;
