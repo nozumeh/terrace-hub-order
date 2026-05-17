@@ -109,9 +109,9 @@ function KitchenView() {
       }, 600);
       return;
     }
-    const patch: { status: string; out_for_delivery_at?: string } = { status };
+    const patch: Record<string, unknown> = { status };
     if (status === "on_the_way") patch.out_for_delivery_at = new Date().toISOString();
-    const { error } = await supabase.from("orders").update(patch).eq("id", id);
+    const { error } = await supabase.from("orders").update(patch as never).eq("id", id);
     if (error) toast.error("❌ Error al guardar");
     else { toast.success("✓ Guardado"); refresh(); }
   };
