@@ -162,11 +162,7 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
           </div>
 
           <TabsContent value="customer" className="m-0">
-            <div className="space-y-2">
-              <Label htmlFor="cust-store-id">ID# de Tienda</Label>
-              <Input id="cust-store-id" required={tab === "customer"} value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ej: 1234" />
-            </div>
-            <p className="mt-3 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+            <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
               Como cliente puedes pedir comida y revisar tu historial. Si trabajas en City Market, elige <b>Trabajador</b> para tu descuento.
             </p>
           </TabsContent>
