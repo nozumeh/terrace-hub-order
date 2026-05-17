@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/login" });
@@ -23,6 +25,10 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    try {
+      localStorage.setItem("tg:rememberMe", remember ? "true" : "false");
+      sessionStorage.setItem("tg:sessionAlive", "1");
+    } catch { /* ignore storage errors */ }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
@@ -50,6 +56,13 @@ function LoginPage() {
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
             <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+              <Checkbox checked={remember} onCheckedChange={(v) => setRemember(v === true)} />
+              Recordar mi sesión
+            </label>
+            <Link to="/forgot-password" className="text-sm text-gold hover:underline">¿Olvidaste tu contraseña?</Link>
           </div>
           <Button type="submit" disabled={busy} className="w-full bg-gold text-primary-foreground hover:bg-gold/90">
             {busy && <Loader2 className="h-4 w-4 animate-spin" />} Entrar
