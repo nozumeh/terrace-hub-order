@@ -124,12 +124,7 @@ function RestaurantPanel() {
   };
 
   if (isChildRoute) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <Outlet />
-      </div>
-    );
+    return <Outlet />;
   }
 
   if (busy) return <div className="min-h-screen bg-background"><Header /><div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-gold" /></div></div>;
