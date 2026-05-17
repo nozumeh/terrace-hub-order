@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as RestaurantRouteImport } from './routes/restaurant'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -40,6 +42,11 @@ const RestaurantRoute = RestaurantRouteImport.update({
   path: '/restaurant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -53,6 +60,11 @@ const MenuRoute = MenuRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmployeeRoute = EmployeeRouteImport.update({
@@ -137,9 +149,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/employee': typeof EmployeeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -159,9 +173,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/employee': typeof EmployeeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -182,9 +198,11 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/employee': typeof EmployeeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/register': typeof RegisterRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/restaurant': typeof RestaurantRouteWithChildren
   '/restaurants': typeof RestaurantsRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -206,9 +224,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/employee'
+    | '/forgot-password'
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -228,9 +248,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/employee'
+    | '/forgot-password'
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -250,9 +272,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/employee'
+    | '/forgot-password'
     | '/login'
     | '/menu'
     | '/register'
+    | '/reset-password'
     | '/restaurant'
     | '/restaurants'
     | '/orders/$id'
@@ -273,9 +297,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CheckoutRoute: typeof CheckoutRoute
   EmployeeRoute: typeof EmployeeRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
   RegisterRoute: typeof RegisterRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RestaurantRoute: typeof RestaurantRouteWithChildren
   RestaurantsRoute: typeof RestaurantsRoute
   OrdersIdRoute: typeof OrdersIdRoute
@@ -297,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -316,6 +349,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/employee': {
@@ -470,9 +510,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CheckoutRoute: CheckoutRoute,
   EmployeeRoute: EmployeeRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
   RegisterRoute: RegisterRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   RestaurantRoute: RestaurantRouteWithChildren,
   RestaurantsRoute: RestaurantsRoute,
   OrdersIdRoute: OrdersIdRoute,

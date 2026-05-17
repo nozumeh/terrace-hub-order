@@ -62,7 +62,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setTimeout(() => { loadExtras(session?.user ?? null); }, 0);
     });
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      // "Remember me" enforcement: if the user opted out, only keep the
+      // session alive for the current browser tab. When the tab/browser
+      // is closed, sessionStorage clears and we sign them out on next load.
+      if (typeof window !== "undefined" && data.session) {
+        const remember = localStorage.getItem("tg:rememberMe");
+        const alive = sessionStorage.getItem("tg:sessionAlive");
+        if (remember === "false" && !alive) {
+          await supabase.auth.signOut();
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        sessionStorage.setItem("tg:sessionAlive", "1");
+      }
       setUser(data.session?.user ?? null);
       loadExtras(data.session?.user ?? null).finally(() => setLoading(false));
     });
