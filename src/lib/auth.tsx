@@ -17,6 +17,7 @@ export interface Profile {
   name: string;
   store_name: string | null;
   store_floor: string | null;
+  store_id?: string | null;
   is_employee: boolean;
   phone?: string | null;
   promo_code?: string | null;
