@@ -15,7 +15,7 @@ import { toast } from "sonner";
 interface Extra { id: string; name: string; price: number }
 interface Removable { id: string; name: string }
 interface MenuItem {
-  id: string; restaurant_id: string; name: string; price: number;
+  id: string; restaurant_id: string; name: string; price: number; image_url: string | null;
   options: string[] | null;
   menu_item_extras: Extra[];
   menu_item_removable_options: Removable[];
@@ -43,7 +43,7 @@ export function CartItemEditor({
     (async () => {
       const { data: m, error } = await supabase
         .from("menu_items")
-        .select("id, restaurant_id, name, price, options, menu_item_extras(id,name,price), menu_item_removable_options(id,name)")
+        .select("id, restaurant_id, name, price, image_url, options, menu_item_extras(id,name,price), menu_item_removable_options(id,name)")
         .eq("id", item.menu_item_id)
         .maybeSingle();
       if (error || !m) {
@@ -91,15 +91,22 @@ export function CartItemEditor({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-h-[92vh] max-w-sm overflow-hidden p-0">
         <DialogHeader>
-          <DialogTitle>{item?.name ?? "Editar"}</DialogTitle>
+          <DialogTitle className="px-5 pt-5">{item?.name ?? "Editar"}</DialogTitle>
         </DialogHeader>
 
         {loading || !data ? (
           <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-gold" /></div>
         ) : (
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto">
+          <div className="max-h-[64vh] space-y-4 overflow-y-auto px-5 pb-2">
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-lg border border-border bg-background">
+              {data.image_url ? (
+                <img src={data.image_url} alt={data.name} className="h-full w-full object-contain" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-5xl">🍔</div>
+              )}
+            </div>
             {Array.isArray(data.options) && data.options.length > 0 && (
               <div>
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opción</div>
@@ -166,7 +173,7 @@ export function CartItemEditor({
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={save} disabled={!data} className="bg-gold text-primary-foreground hover:bg-gold/90">Guardar</Button>
         </DialogFooter>

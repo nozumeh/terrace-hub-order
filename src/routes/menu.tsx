@@ -354,7 +354,7 @@ function MenuPage() {
                       )}
                     </div>
                     <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="bg-gold text-primary-foreground hover:bg-gold/90">
-                      {customizable ? (<><Settings2 className="h-3 w-3" /> Personalizar</>) : (<><Plus className="h-3 w-3" /> Agregar</>)}
+                      <Plus className="h-3 w-3" /> Agregar
                     </Button>
                   </div>
                 </div>
@@ -365,7 +365,7 @@ function MenuPage() {
       </div>
 
       <Dialog open={!!customizeItem} onOpenChange={(v) => { if (!v) closeCustomize(); }}>
-        <DialogContent className="max-w-md p-0 overflow-hidden">
+        <DialogContent className="max-h-[92vh] max-w-md overflow-hidden p-0">
           <DialogHeader>
             <DialogTitle className="sr-only">{customizeItem?.name}</DialogTitle>
           </DialogHeader>
@@ -382,9 +382,9 @@ function MenuPage() {
             const hasRemovables = (it.menu_item_removable_options?.length ?? 0) > 0;
             return (
               <>
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-background">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-background md:aspect-[16/11]">
                   {it.image_url ? (
-                    <img src={it.image_url} alt={it.name} className="h-full w-full object-cover" />
+                    <img src={it.image_url} alt={it.name} className="h-full w-full object-contain" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-6xl">🍔</div>
                   )}
@@ -393,7 +393,7 @@ function MenuPage() {
                     <div className="mt-0.5 text-sm font-semibold text-gold">${basePrice.toFixed(2)}</div>
                   </div>
                 </div>
-                <div className="max-h-[50vh] space-y-4 overflow-y-auto px-5 py-4">
+                  <div className="max-h-[46vh] space-y-4 overflow-y-auto px-5 py-4">
                   {it.description && (
                     <p className="text-sm leading-relaxed text-muted-foreground">{it.description}</p>
                   )}
@@ -503,15 +503,13 @@ function MenuPage() {
                   </div>
                   {stage === "preview" ? (
                     <div className="flex w-full gap-2">
-                      {(hasOptions || hasExtras || hasRemovables) && (
-                        <Button
-                          variant="outline"
-                          onClick={() => setStage("edit")}
-                          className="flex-1 border-gold/40 text-gold hover:bg-gold/10"
-                        >
-                          <Settings2 className="h-4 w-4" /> Editar
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        onClick={() => setStage("edit")}
+                        className="flex-1 border-gold/40 text-gold hover:bg-gold/10"
+                      >
+                        <Settings2 className="h-4 w-4" /> Editar
+                      </Button>
                       <Button
                         onClick={confirmCustomize}
                         className="flex-1 bg-gold text-primary-foreground hover:bg-gold/90"
