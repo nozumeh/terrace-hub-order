@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { signUpEmployeeConfirmed } from "@/lib/employee-signup.functions";
 import { toast } from "sonner";
 import { Loader2, Briefcase, Store, Mail } from "lucide-react";
 
@@ -63,13 +64,38 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
     e.preventDefault();
     setBusy(true);
     try {
-      const meta: Record<string, string> = { name, phone, account_type: tab };
       if (tab === "employee") {
-        meta.store_name = storeName;
-        meta.store_floor = floor;
-        meta.store_id = storeId;
-        meta.local_number = localNumber;
+        // Empleados: crear con email pre-confirmado (sin verificación) e iniciar sesión.
+        await signUpEmployeeConfirmed({
+          data: {
+            email,
+            password,
+            name,
+            phone,
+            store_name: storeName,
+            store_floor: floor,
+            store_id: storeId,
+            local_number: localNumber,
+          },
+        });
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) throw signInErr;
+        if (inviteToken) {
+          const { error: invErr } = await supabase.rpc("accept_employee_invite" as never, { _token: inviteToken } as never);
+          if (invErr) throw invErr;
+        } else {
+          const { error: setupErr } = await supabase.rpc("setup_account", {
+            _account_type: "employee",
+            _staff_role: staffRole,
+          });
+          if (setupErr) throw setupErr;
+        }
+        toast.success("¡Bienvenido!");
+        navigate({ to: "/employee" });
+        return;
       }
+
+      const meta: Record<string, string> = { name, phone, account_type: tab };
       const { data, error } = await supabase.auth.signUp({
         email, password,
         options: { emailRedirectTo: `${window.location.origin}/menu`, data: meta },
@@ -77,22 +103,15 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
       if (error) throw error;
 
       if (data.session) {
-        if (tab === "employee" && inviteToken) {
-          const { error: invErr } = await supabase.rpc("accept_employee_invite" as never, { _token: inviteToken } as never);
-          if (invErr) throw invErr;
-        } else {
-          const { error: setupErr } = await supabase.rpc("setup_account", {
-            _account_type: tab,
-            _staff_role: tab === "employee" ? staffRole : undefined,
-            _business_name: tab === "restaurant_owner" ? businessName : undefined,
-            _business_description: tab === "restaurant_owner" ? businessDesc : undefined,
-            _business_phone: tab === "restaurant_owner" ? phone : undefined,
-          });
-          if (setupErr) throw setupErr;
-        }
+        const { error: setupErr } = await supabase.rpc("setup_account", {
+          _account_type: tab,
+          _business_name: tab === "restaurant_owner" ? businessName : undefined,
+          _business_description: tab === "restaurant_owner" ? businessDesc : undefined,
+          _business_phone: tab === "restaurant_owner" ? phone : undefined,
+        });
+        if (setupErr) throw setupErr;
         toast.success("¡Bienvenido!");
         if (tab === "restaurant_owner") navigate({ to: "/restaurant" });
-        else if (tab === "employee") navigate({ to: "/employee" });
         else navigate({ to: "/account" });
       } else {
         toast.success("Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.");
