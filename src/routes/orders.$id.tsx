@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Check, Clock, ChefHat, Bike, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
+import { buildWhatsAppOrderMessage, openWhatsAppOrder, PAYMENT_LABELS, type PaymentMethod, type DeliveryType } from "@/lib/whatsapp-order";
 
 export const Route = createFileRoute("/orders/$id")({ component: OrderStatus });
 
@@ -19,6 +21,11 @@ interface Order {
   id: string; order_number: number; status: string; total_final: number;
   delivery_store: string; delivery_floor: string; restaurant_id: string;
   notes: string;
+  total_before_discount: number;
+  discount_applied: number;
+  payment_method: PaymentMethod | null;
+  delivery_type: DeliveryType | null;
+  created_at: string;
   out_for_delivery_at: string | null;
   delivered_at: string | null;
 }
@@ -36,6 +43,7 @@ function OrderStatus() {
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [restaurantName, setRestaurantName] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("+584120690379");
   const [loading, setLoading] = useState(true);
   const [avgFloorSeconds, setAvgFloorSeconds] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -46,11 +54,12 @@ function OrderStatus() {
       if (!o) { setLoading(false); return; }
       const [{ data: it }, { data: r }] = await Promise.all([
         supabase.from("order_items").select("*").eq("order_id", id),
-        supabase.from("restaurants").select("name").eq("id", o.restaurant_id).maybeSingle(),
+        supabase.from("restaurants").select("name,whatsapp_number").eq("id", o.restaurant_id).maybeSingle(),
       ]);
       setOrder(o as Order);
       setItems((it ?? []) as Item[]);
       setRestaurantName(r?.name ?? "");
+      if (r?.whatsapp_number) setWhatsappNumber(r.whatsapp_number);
       setLoading(false);
 
       // Promedio agregado (RLS-bypass vía RPC SECURITY DEFINER, devuelve solo un número)
@@ -84,6 +93,30 @@ function OrderStatus() {
   if (!order) return <div className="min-h-screen bg-background"><Header /><div className="px-4 py-20 text-center text-muted-foreground">Pedido no encontrado</div></div>;
 
   const currentIdx = STEPS.findIndex((s) => s.key === order.status);
+
+  const sendWhatsApp = () => {
+    if (!order) return;
+    const msg = buildWhatsAppOrderMessage({
+      orderNumber: order.order_number,
+      createdAt: new Date(order.created_at),
+      items: items.map((i) => ({
+        quantity: i.quantity,
+        name: i.name,
+        unitPrice: i.customizations?.base_price ?? Number(i.subtotal) / Math.max(1, i.quantity),
+        extras: i.customizations?.extras?.map((e) => ({ name: e.name, price: e.price })) ?? [],
+        removed: i.customizations?.removed?.map((r) => r.name) ?? [],
+      })),
+      deliveryType: (order.delivery_type ?? "to_store") as DeliveryType,
+      deliveryStore: order.delivery_store,
+      deliveryFloor: order.delivery_floor,
+      paymentMethod: (order.payment_method ?? "whatsapp") as PaymentMethod,
+      subtotal: Number(order.total_before_discount),
+      discount: Number(order.discount_applied),
+      total: Number(order.total_final),
+      notes: order.notes,
+    });
+    openWhatsAppOrder(whatsappNumber, msg);
+  };
 
   // ETA: defaults to 8 min when no historical data
   const DEFAULT_ETA_SEC = 8 * 60;
@@ -140,9 +173,25 @@ function OrderStatus() {
 
         <div className="mt-6 rounded-xl border border-border bg-card p-6">
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Entrega</div>
-          <div className="mt-1 text-sm">Tienda: <span className="font-medium">{order.delivery_store}</span> · Piso <span className="font-medium">{order.delivery_floor}</span></div>
+          {order.delivery_type === "pickup" ? (
+            <div className="mt-1 text-sm">🏪 Recoger en <span className="font-medium">{restaurantName}</span></div>
+          ) : (
+            <div className="mt-1 text-sm">📍 Tienda: <span className="font-medium">{order.delivery_store}</span> · Piso <span className="font-medium">{order.delivery_floor}</span></div>
+          )}
           {order.notes && <div className="mt-2 text-xs text-muted-foreground">Notas: {order.notes}</div>}
         </div>
+
+        {order.payment_method && (
+          <div className="mt-6 rounded-xl border border-border bg-card p-6">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Método de pago</div>
+            <div className="mt-1 text-sm font-medium">{PAYMENT_LABELS[order.payment_method]}</div>
+            {order.payment_method !== "en_caja" && (
+              <Button onClick={sendWhatsApp} className="mt-3 w-full bg-gold text-primary-foreground hover:bg-gold/90">
+                Enviar por WhatsApp 📱
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="mt-6 rounded-xl border border-border bg-card p-6">
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Items</div>

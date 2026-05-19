@@ -425,11 +425,13 @@ export type Database = {
           delivered_at: string | null
           delivery_floor: string
           delivery_store: string
+          delivery_type: string
           discount_applied: number
           id: string
           notes: string | null
           order_number: number
           out_for_delivery_at: string | null
+          payment_method: string | null
           restaurant_id: string
           runner_id: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -442,11 +444,13 @@ export type Database = {
           delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
+          delivery_type?: string
           discount_applied?: number
           id?: string
           notes?: string | null
           order_number?: number
           out_for_delivery_at?: string | null
+          payment_method?: string | null
           restaurant_id: string
           runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -459,11 +463,13 @@ export type Database = {
           delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
+          delivery_type?: string
           discount_applied?: number
           id?: string
           notes?: string | null
           order_number?: number
           out_for_delivery_at?: string | null
+          payment_method?: string | null
           restaurant_id?: string
           runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -533,6 +539,8 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          delivery_pickup: boolean
+          delivery_to_store: boolean
           description: string | null
           hours: string | null
           id: string
@@ -540,11 +548,19 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string | null
+          pago_movil_info: string
+          payment_efectivo: boolean
+          payment_en_caja: boolean
+          payment_pago_movil: boolean
+          payment_whatsapp: boolean
           phone: string | null
+          whatsapp_number: string
         }
         Insert: {
           address?: string | null
           created_at?: string
+          delivery_pickup?: boolean
+          delivery_to_store?: boolean
           description?: string | null
           hours?: string | null
           id?: string
@@ -552,11 +568,19 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id?: string | null
+          pago_movil_info?: string
+          payment_efectivo?: boolean
+          payment_en_caja?: boolean
+          payment_pago_movil?: boolean
+          payment_whatsapp?: boolean
           phone?: string | null
+          whatsapp_number?: string
         }
         Update: {
           address?: string | null
           created_at?: string
+          delivery_pickup?: boolean
+          delivery_to_store?: boolean
           description?: string | null
           hours?: string | null
           id?: string
@@ -564,7 +588,13 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string | null
+          pago_movil_info?: string
+          payment_efectivo?: boolean
+          payment_en_caja?: boolean
+          payment_pago_movil?: boolean
+          payment_whatsapp?: boolean
           phone?: string | null
+          whatsapp_number?: string
         }
         Relationships: []
       }
