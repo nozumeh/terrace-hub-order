@@ -12,7 +12,7 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
   const { user, profile, roles } = useAuth();
   const navigate = useNavigate();
   const employee = isEmployee(profile, roles);
-  const discount = employee && items.length > 0 ? 1 : 0;
+  const discount = employee && items.length > 0 ? subtotal * 0.10 : 0;
   const total = Math.max(0, subtotal - discount);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<CartItem | null>(null);
@@ -92,14 +92,17 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
             </div>
             {employee && (
               <div className="flex justify-between text-sm text-success">
-                <span>Descuento empleado</span><span>-${discount.toFixed(2)}</span>
+                <span>Descuento empleado (10%)</span><span>-${discount.toFixed(2)}</span>
               </div>
             )}
             {!user && (
               <div className="rounded-md border border-border bg-background p-3 text-xs text-muted-foreground">
-                Inicia sesión como empleado para obtener <span className="text-gold">$1 de descuento</span>.
+                Inicia sesión como empleado para obtener <span className="text-gold">10% de descuento</span> en cada pedido.
               </div>
             )}
+            <div className="text-[11px] text-muted-foreground">
+              Se añadirá una tarifa de servicio de $0.50 al confirmar el pedido.
+            </div>
             <div className="flex justify-between text-lg font-semibold">
               <span>Total</span><span className="text-gold">${total.toFixed(2)}</span>
             </div>
