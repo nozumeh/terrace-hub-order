@@ -13,10 +13,11 @@ import { NotificationsBanner } from "@/components/NotificationsBanner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/restaurant/dashboard")({ component: Dashboard });
 
-interface OrderRow { id: string; total_final: number; status: string; created_at: string }
+interface OrderRow { id: string; total_final: number; status: string; created_at: string; bcv_rate_snapshot: number | null; total_bs: number | null }
 interface ItemRow { order_id: string; name: string; quantity: number; subtotal: number }
 interface RestaurantInfo {
   id: string; name: string; description: string | null; phone: string | null;
@@ -29,6 +30,7 @@ const PAGE_SIZE = 10;
 function Dashboard() {
   const { user, loading, isRestaurantOwner } = useAuth();
   const navigate = useNavigate();
+  const { rate: currentBcv } = useBcvRate();
   const [resto, setResto] = useState<RestaurantInfo | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
@@ -47,7 +49,7 @@ function Dashboard() {
       const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url").eq("owner_id", user.id).maybeSingle();
       if (!r) { setBusy(false); return; }
       setResto(r as RestaurantInfo);
-      const { data: o } = await supabase.from("orders").select("id,total_final,status,created_at").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
+      const { data: o } = await supabase.from("orders").select("id,total_final,status,created_at,bcv_rate_snapshot,total_bs").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
       setOrders((o ?? []) as OrderRow[]);
       if (o && o.length) {
         const { data: it } = await supabase.from("order_items").select("order_id,name,quantity,subtotal").in("order_id", o.map((x) => x.id));
@@ -149,7 +151,7 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Ventas" value={`$${kpis.sum.toFixed(2)}`} sub={periodLabel(period)} />
+          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Ventas" value={`$${kpis.sum.toFixed(2)} USD`} sub={formatBsLabel(kpis.sum, currentBcv)} />
           <StatCard icon={<ShoppingBag className="h-4 w-4" />} label="Pedidos" value={`${kpis.count}`} sub="completados" />
           <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Ticket promedio" value={`$${kpis.ticket.toFixed(2)}`} sub="por pedido" />
           <StatCard icon={<Trophy className="h-4 w-4" />} label="Top producto" value={kpis.topName} sub={kpis.topQty ? `${kpis.topQty} vendidos` : "—"} />
@@ -203,13 +205,15 @@ function Dashboard() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground"><th className="py-2">Fecha</th><th className="py-2">Estado</th><th className="py-2 text-right">Total</th></tr></thead>
+                  <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground"><th className="py-2">Fecha</th><th className="py-2">Estado</th><th className="py-2 text-right">USD</th><th className="py-2 text-right">Bs.</th><th className="py-2 text-right">Tasa BCV</th></tr></thead>
                   <tbody>
                     {pageOrders.map((o) => (
                       <tr key={o.id} className="border-b border-border/50">
                         <td className="py-2">{format(new Date(o.created_at), "dd MMM yyyy HH:mm", { locale: es })}</td>
                         <td className="py-2"><span className="rounded-full bg-muted px-2 py-0.5 text-xs">{o.status}</span></td>
                         <td className="py-2 text-right font-medium">${Number(o.total_final).toFixed(2)}</td>
+                        <td className="py-2 text-right">{formatBsLabel(Number(o.total_final), Number(o.bcv_rate_snapshot ?? currentBcv))}</td>
+                        <td className="py-2 text-right text-muted-foreground">{o.bcv_rate_snapshot ? Number(o.bcv_rate_snapshot).toFixed(2) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
