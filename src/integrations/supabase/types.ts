@@ -702,6 +702,10 @@ export type Database = {
         Args: { _floor: string; _restaurant_id: string }
         Returns: number
       }
+      can_manage_menu_image: {
+        Args: { _object_name: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
