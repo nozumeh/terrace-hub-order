@@ -196,7 +196,7 @@ function RestaurantPanel() {
                 <Link to="/restaurant/employees"><UserPlus className="h-3 w-3" /> Empleados</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/restaurant/dashboard" hash="pagos"><CreditCard className="h-3 w-3" /> Métodos de pago</Link>
+                <Link to="/restaurant/payments"><CreditCard className="h-3 w-3" /> Métodos de pago</Link>
               </Button>
               <Button asChild size="sm" className="bg-gold text-primary-foreground hover:bg-gold/90">
                 <Link to="/restaurant/kitchen"><ChefHat className="h-3 w-3" /> Vista cocina</Link>
