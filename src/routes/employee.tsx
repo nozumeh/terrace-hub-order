@@ -23,8 +23,8 @@ interface OrderRow {
   id: string;
   order_number: number;
   status: string;
-  total_final: number;
-  discount_applied: number;
+  total: number;
+  discount_amount: number;
   created_at: string;
 }
 
@@ -63,8 +63,8 @@ function EmployeePanel() {
     if (!user) return;
     supabase
       .from("orders")
-      .select("id,order_number,status,total_final,discount_applied,created_at")
-      .eq("user_id", user.id)
+      .select("id,order_number,status,total,discount_amount,created_at")
+      .eq("customer_id", user.id)
       .order("created_at", { ascending: false })
       .limit(30)
       .then(({ data }) => setOrders((data ?? []) as OrderRow[]));
@@ -166,9 +166,9 @@ function EmployeePanel() {
                       <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold">${Number(o.total_final).toFixed(2)}</div>
-                      {Number(o.discount_applied) > 0 && (
-                        <div className="text-[10px] text-gold">−${Number(o.discount_applied).toFixed(2)} descuento</div>
+                      <div className="font-semibold">${Number(o.total).toFixed(2)}</div>
+                      {Number(o.discount_amount) > 0 && (
+                        <div className="text-[10px] text-gold">−${Number(o.discount_amount).toFixed(2)} descuento</div>
                       )}
                       <div className="text-xs uppercase tracking-wider text-muted-foreground">{o.status}</div>
                     </div>
