@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Loader2, ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Save, Receipt, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { NotificationsBanner } from "@/components/NotificationsBanner";
