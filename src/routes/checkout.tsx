@@ -103,11 +103,12 @@ function Checkout() {
       .select("rate")
       .limit(1)
       .single();
+    const supabaseURL = (supabase as unknown as { supabaseUrl: string }).supabaseUrl;
     console.log("DIAGNOSTICS:", {
       userID: user?.id,
-      supabaseURL: supabase.supabaseUrl,
+      supabaseURL,
       bcvRateRead: testRead?.rate,
-      projectMatch: supabase.supabaseUrl.includes("fgqoixfbnivyctduubwz"),
+      projectMatch: supabaseURL.includes("fgqoixfbnivyctduubwz"),
     });
     if (!user || items.length === 0) return;
     if (!paymentMethod) { toast.error("Selecciona un método de pago"); return; }
