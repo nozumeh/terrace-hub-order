@@ -17,7 +17,7 @@ import { useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/restaurant/dashboard")({ component: Dashboard });
 
-interface OrderRow { id: string; total_final: number; status: string; created_at: string; bcv_rate_snapshot: number | null; total_bs: number | null }
+interface OrderRow { id: string; total: number; status: string; created_at: string; bcv_rate_snapshot: number | null; total_bs: number | null }
 interface ItemRow { order_id: string; name: string; quantity: number; subtotal: number }
 interface RestaurantInfo {
   id: string; name: string; description: string | null; phone: string | null;
@@ -49,7 +49,7 @@ function Dashboard() {
       const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url").eq("owner_id", user.id).maybeSingle();
       if (!r) { setBusy(false); return; }
       setResto(r as RestaurantInfo);
-      const { data: o } = await supabase.from("orders").select("id,total_final,status,created_at,bcv_rate_snapshot,total_bs").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
+      const { data: o } = await supabase.from("orders").select("id,total,status,created_at,bcv_rate_snapshot,total_bs").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
       setOrders((o ?? []) as OrderRow[]);
       if (o && o.length) {
         const { data: it } = await supabase.from("order_items").select("order_id,name,quantity,subtotal").in("order_id", o.map((x) => x.id));
@@ -66,7 +66,7 @@ function Dashboard() {
   }, [orders, periodMs]);
 
   const kpis = useMemo(() => {
-    const sum = periodOrders.reduce((a, b) => a + Number(b.total_final), 0);
+    const sum = periodOrders.reduce((a, b) => a + Number(b.total), 0);
     const count = periodOrders.length;
     const ticket = count ? sum / count : 0;
     const ids = new Set(periodOrders.map((o) => o.id));
@@ -89,7 +89,7 @@ function Dashboard() {
     for (const o of periodOrders) {
       const t = new Date(o.created_at).getTime();
       const idx = buckets - 1 - Math.floor((now - t) / unit);
-      if (idx >= 0 && idx < buckets) arr[idx].ventas += Number(o.total_final);
+      if (idx >= 0 && idx < buckets) arr[idx].ventas += Number(o.total);
     }
     return arr;
   }, [periodOrders, period]);
@@ -211,8 +211,8 @@ function Dashboard() {
                       <tr key={o.id} className="border-b border-border/50">
                         <td className="py-2">{format(new Date(o.created_at), "dd MMM yyyy HH:mm", { locale: es })}</td>
                         <td className="py-2"><span className="rounded-full bg-muted px-2 py-0.5 text-xs">{o.status}</span></td>
-                        <td className="py-2 text-right font-medium">${Number(o.total_final).toFixed(2)}</td>
-                        <td className="py-2 text-right">{formatBsLabel(Number(o.total_final), Number(o.bcv_rate_snapshot ?? currentBcv))}</td>
+                        <td className="py-2 text-right font-medium">${Number(o.total).toFixed(2)}</td>
+                        <td className="py-2 text-right">{formatBsLabel(Number(o.total), Number(o.bcv_rate_snapshot ?? currentBcv))}</td>
                         <td className="py-2 text-right text-muted-foreground">{o.bcv_rate_snapshot ? Number(o.bcv_rate_snapshot).toFixed(2) : "—"}</td>
                       </tr>
                     ))}
