@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Briefcase, Store, Mail } from "lucide-react";
+import { Loader2, Briefcase, Store, Mail } from "lucide-react";
 
 export type AccountType = "customer" | "employee" | "restaurant_owner";
 export type StaffRole = "empleado" | "gerente" | "dueno";
