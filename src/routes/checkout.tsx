@@ -63,6 +63,7 @@ function Checkout() {
           variant: i.variant,
           extras: i.extras,
           removed: i.removed,
+          notes: i.notes,
         } as unknown as never,
       }))
     );
