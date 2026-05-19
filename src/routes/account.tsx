@@ -16,7 +16,7 @@ interface OrderRow {
   id: string;
   order_number: number;
   status: string;
-  total_final: number;
+  total: number;
   created_at: string;
   delivery_store: string | null;
 }
@@ -47,8 +47,8 @@ function AccountPage() {
     if (!user) return;
     supabase
       .from("orders")
-      .select("id,order_number,status,total_final,created_at,delivery_store")
-      .eq("user_id", user.id)
+      .select("id,order_number,status,total,created_at,delivery_store")
+      .eq("customer_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data }) => setOrders((data ?? []) as OrderRow[]));
@@ -166,7 +166,7 @@ function AccountPage() {
                           <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleTimeString()}</div>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">${Number(o.total_final).toFixed(2)}</div>
+                          <div className="font-semibold">${Number(o.total).toFixed(2)}</div>
                           <div className="text-xs uppercase tracking-wider text-muted-foreground">{o.status}</div>
                         </div>
                       </li>
