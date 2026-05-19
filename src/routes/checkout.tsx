@@ -97,6 +97,19 @@ function Checkout() {
     : [{ v: "to_store" as const, t: "Recibir en mi tienda", s: "El food runner lleva tu pedido" }];
 
   const placeOrder = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: testRead } = await supabase
+      .from("bcv_rates")
+      .select("rate")
+      .limit(1)
+      .single();
+    const supabaseURL = (supabase as unknown as { supabaseUrl: string }).supabaseUrl;
+    console.log("DIAGNOSTICS:", {
+      userID: user?.id,
+      supabaseURL,
+      bcvRateRead: testRead?.rate,
+      projectMatch: supabaseURL.includes("fgqoixfbnivyctduubwz"),
+    });
     if (!user || items.length === 0) return;
     if (!paymentMethod) { toast.error("Selecciona un método de pago"); return; }
     if (showStoreFields && !store.trim()) { toast.error("Indica el nombre de tu tienda"); return; }
