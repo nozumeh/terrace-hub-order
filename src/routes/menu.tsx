@@ -311,7 +311,7 @@ function MenuPage() {
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
             {filtered.map((i) => {
               const price = Number(i.price);
-              const discounted = Math.max(0, price - 1);
+              const discounted = Math.max(0, price * 0.90);
               const outOfStock = i.stock_quantity !== null && i.stock_quantity <= 0;
               const unavailable = !i.is_available || outOfStock;
               const lowStock = i.stock_quantity !== null && i.stock_quantity > 0 && i.stock_quantity <= 5;
