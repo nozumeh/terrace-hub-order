@@ -252,7 +252,7 @@ function Dashboard() {
           <Button className="mt-4" onClick={saveInfo} disabled={saving}>{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Guardar</Button>
         </section>
 
-        <section className="rounded-xl border border-border bg-card p-6">
+        <section id="pagos" className="scroll-mt-24 rounded-xl border border-border bg-card p-6">
           <h2 className="mb-1 font-heading text-lg font-bold">Métodos de pago y entrega</h2>
           <p className="mb-4 text-xs text-muted-foreground">Configura cómo los clientes reciben y pagan sus pedidos.</p>
 
