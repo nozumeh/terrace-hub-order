@@ -114,7 +114,13 @@ function Checkout() {
       bcv_rate_snapshot: bcvRate,
       total_bs: Number((total * bcvRate).toFixed(2)),
     }).select().single();
-    if (error || !order) { setBusy(false); toast.error(error?.message || "Error"); return; }
+    if (error || !order) {
+      console.error("Order error:", error);
+      setBusy(false);
+      toast.error("Error al guardar pedido: " + (error?.message || "desconocido"));
+      return;
+    }
+    console.log("Order saved to Supabase:", order.id);
     const { error: itemsErr } = await supabase.from("order_items").insert(
       items.map((i) => ({
         order_id: order.id, menu_item_id: i.menu_item_id, name: i.name,
