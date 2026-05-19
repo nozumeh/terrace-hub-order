@@ -22,11 +22,13 @@ export function formatBsLabel(usd: number, rate: number): string {
 }
 
 export async function fetchCurrentBcvRate(): Promise<BcvRate> {
-  const { data } = await (supabase as never as { from: (t: string) => { select: (c: string) => { order: (col: string, opts: { ascending: boolean }) => { limit: (n: number) => { maybeSingle: () => Promise<{ data: BcvRate | null }> } } } } }).from("bcv_rates")
+  const { data, error } = await supabase
+    .from("bcv_rates")
     .select("rate,date,notes")
     .order("date", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (error) console.error("[bcv] fetch error", error);
   if (data) return { rate: Number(data.rate), date: data.date, notes: data.notes };
   return { rate: DEFAULT_BCV_RATE, date: new Date().toISOString().slice(0, 10) };
 }

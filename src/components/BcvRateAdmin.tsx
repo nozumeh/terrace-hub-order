@@ -12,8 +12,6 @@ import { useAuth } from "@/lib/auth";
 
 interface RateRow { id: string; rate: number; date: string; notes: string | null; created_by: string | null; created_at: string }
 
-const bcvTable = () => (supabase as never as { from: (t: string) => { select: (c: string) => { order: (col: string, opts: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: RateRow[] | null }> } }; upsert: (row: Record<string, unknown>, opts: { onConflict: string }) => Promise<{ error: { message: string } | null }> } }).from("bcv_rates");
-
 export function BcvRateAdmin() {
   const { rate, date, refresh } = useBcvRate();
   const { user } = useAuth();
@@ -23,8 +21,13 @@ export function BcvRateAdmin() {
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), rate: "", notes: "" });
 
   const loadHistory = async () => {
-    const { data } = await bcvTable().select("id,rate,date,notes,created_by,created_at").order("date", { ascending: false }).limit(30);
-    setHistory(data ?? []);
+    const { data, error } = await supabase
+      .from("bcv_rates")
+      .select("id,rate,date,notes,created_by,created_at")
+      .order("date", { ascending: false })
+      .limit(30);
+    if (error) { console.error("[bcv] history error", error); return; }
+    setHistory((data ?? []) as RateRow[]);
   };
 
   useEffect(() => { loadHistory(); }, [rate]);
@@ -38,10 +41,12 @@ export function BcvRateAdmin() {
     const r = Number(form.rate);
     if (!form.date || !r || r <= 0) { toast.error("Ingresa una tasa válida"); return; }
     setSaving(true);
-    const { error } = await bcvTable().upsert(
-      { date: form.date, rate: r, notes: form.notes || null, created_by: user?.id ?? null },
-      { onConflict: "date" },
-    );
+    const { error } = await supabase
+      .from("bcv_rates")
+      .upsert(
+        { date: form.date, rate: r, notes: form.notes || null, created_by: user?.id ?? null },
+        { onConflict: "date" },
+      );
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Tasa BCV actualizada");
