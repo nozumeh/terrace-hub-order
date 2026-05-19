@@ -20,6 +20,7 @@ export const Route = createFileRoute("/checkout")({ component: Checkout });
 const SERVICE_FEE = 0.5;
 const EMPLOYEE_DISCOUNT_RATE = 0.10;
 const ORDER_RESTAURANT_ID = "a0000000-0000-0000-0000-000000000001";
+const roundCurrency = (value: number) => Number(value.toFixed(2));
 
 interface RestaurantSettings {
   name: string;
@@ -32,11 +33,11 @@ interface RestaurantSettings {
 function Checkout() {
   const navigate = useNavigate();
   const { user, profile, roles, loading } = useAuth();
-  const { items, subtotal, restaurantId, clear } = useCart();
+  const { items, subtotal, clear } = useCart();
   const employee = roles.some((role) => role === "supervisor" || role === "worker");
-  const discount = employee && items.length > 0 ? subtotal * EMPLOYEE_DISCOUNT_RATE : 0;
+  const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
   const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
-  const total = Math.max(0, subtotal - discount + serviceFee);
+  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee));
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
@@ -59,7 +60,7 @@ function Checkout() {
   }, [profile]);
 
   useEffect(() => {
-    if (!restaurantId && items.length === 0) return;
+    if (items.length === 0) return;
     (async () => {
       const { data } = await supabase.from("restaurants")
         .select("name,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info")
@@ -69,7 +70,7 @@ function Checkout() {
         if (!data.delivery_to_store && data.delivery_pickup) setDeliveryType("pickup");
       }
     })();
-  }, [restaurantId, items.length]);
+  }, [items.length]);
 
   const availablePayments = useMemo<PaymentMethod[]>(() => {
     if (!restoSettings) return ["pago_movil", "whatsapp", "en_caja", "efectivo"];
