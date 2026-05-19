@@ -318,6 +318,11 @@ function MenuPage() {
               const customizable = needsCustomization(i);
               return (
                 <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
+                  {!unavailable && lowStock && (
+                    <div className="mb-2 inline-flex w-fit items-center rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                      Quedan {i.stock_quantity}
+                    </div>
+                  )}
                   <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-background">
                     {i.image_url ? (
                       <img src={i.image_url} alt={i.name} loading="lazy" className="h-full w-full object-cover" />
@@ -329,13 +334,8 @@ function MenuPage() {
                         <span className="rounded-md bg-destructive px-2 py-1 text-xs font-bold uppercase tracking-wider text-destructive-foreground">Agotado</span>
                       </div>
                     )}
-                    {!unavailable && lowStock && (
-                      <div className="absolute right-2 top-2 rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-                        Quedan {i.stock_quantity}
-                      </div>
-                    )}
                   </div>
-                  <div className="font-medium">{i.name}</div>
+                  <div className="font-medium leading-tight break-words">{i.name}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.description}</p>
                   <div className="mt-3 flex items-end justify-between">
                     <div>
