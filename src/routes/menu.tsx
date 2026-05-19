@@ -308,7 +308,7 @@ function MenuPage() {
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center text-sm text-muted-foreground">No hay items disponibles.</div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
             {filtered.map((i) => {
               const price = Number(i.price);
               const discounted = Math.max(0, price - 1);
@@ -317,13 +317,13 @@ function MenuPage() {
               const lowStock = i.stock_quantity !== null && i.stock_quantity > 0 && i.stock_quantity <= 5;
               const customizable = needsCustomization(i);
               return (
-                <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-3 sm:p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
+                <div key={i.id} className={`flex h-full min-w-0 flex-col rounded-xl border bg-card p-2.5 sm:p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
                   {!unavailable && lowStock && (
-                    <div className="mb-2 inline-flex w-fit items-center rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                    <div className="mb-1.5 inline-flex w-fit items-center rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
                       Quedan {i.stock_quantity}
                     </div>
                   )}
-                  <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-background">
+                  <div className="relative mb-2.5 sm:mb-3 aspect-[4/3] w-full shrink-0 overflow-hidden rounded-lg bg-background">
                     {i.image_url ? (
                       <img src={i.image_url} alt={i.name} loading="lazy" className="h-full w-full object-cover" />
                     ) : (
@@ -335,10 +335,11 @@ function MenuPage() {
                       </div>
                     )}
                   </div>
-                  <h3 className="text-[15px] sm:text-base font-semibold leading-tight tracking-tight break-words line-clamp-2 min-h-[2.6em]">{i.name}</h3>
-                  <p className="mt-1.5 line-clamp-3 sm:line-clamp-2 text-[12px] sm:text-[13px] leading-relaxed text-muted-foreground min-h-[3.6em] sm:min-h-[2.6em]">{i.description}</p>
-                  <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
-                    <div className="min-w-0">
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <h3 className="text-[14px] sm:text-base font-semibold leading-tight tracking-tight break-words line-clamp-2 min-h-[2.5em]">{i.name}</h3>
+                    <p className="mt-1 line-clamp-2 text-[11.5px] sm:text-[13px] leading-snug text-muted-foreground min-h-[2.5em]">{i.description}</p>
+                    <div className="mt-auto pt-2.5 flex flex-wrap items-end justify-between gap-x-2 gap-y-1.5">
+                      <div className="min-w-0 flex-shrink">
                       {employee ? (
                         <div className="leading-tight">
                           <div className="text-[11px] text-muted-foreground line-through">${price.toFixed(2)}</div>
@@ -347,10 +348,11 @@ function MenuPage() {
                       ) : (
                         <div className="text-base sm:text-lg font-bold text-gold">${price.toFixed(2)}</div>
                       )}
+                      </div>
+                      <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="h-8 shrink-0 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm bg-gold text-primary-foreground hover:bg-gold/90">
+                        <Plus className="h-3 w-3" /> Agregar
+                      </Button>
                     </div>
-                    <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="h-8 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm bg-gold text-primary-foreground hover:bg-gold/90">
-                      <Plus className="h-3 w-3" /> Agregar
-                    </Button>
                   </div>
                 </div>
               );
