@@ -40,7 +40,7 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                     <div className="min-w-0">
                       <div className="truncate font-medium">{i.name}</div>
                       <div className="text-xs text-muted-foreground">${i.unit_price.toFixed(2)} c/u</div>
-                      {(i.variant || i.extras.length > 0 || i.removed.length > 0) && (
+                      {(i.variant || i.extras.length > 0 || i.removed.length > 0 || (i.notes && i.notes.trim())) && (
                         <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                           {i.variant && <li>· {i.variant}</li>}
                           {i.extras.map((e) => (
@@ -49,6 +49,9 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                           {i.removed.map((r) => (
                             <li key={`r-${r.id}`}>− sin {r.name}</li>
                           ))}
+                          {i.notes && i.notes.trim() && (
+                            <li className="italic text-foreground/70">📝 {i.notes}</li>
+                          )}
                         </ul>
                       )}
                     </div>
