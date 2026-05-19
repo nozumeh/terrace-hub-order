@@ -58,10 +58,10 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                     <div className="flex items-start gap-1">
                       <button
                         onClick={() => setEditing(i)}
-                        className="text-muted-foreground hover:text-gold"
+                        className="inline-flex items-center gap-1 rounded-md border border-gold/40 px-2 py-1 text-xs font-medium text-gold hover:bg-gold/10"
                         aria-label="Editar opciones"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-3.5 w-3.5" /> Editar
                       </button>
                       <button
                         onClick={() => remove(i.cart_key)}
