@@ -112,7 +112,7 @@ function EmployeePanel() {
           <div className="text-xs uppercase tracking-widest text-gold">Panel del trabajador</div>
           <h1 className="font-heading text-2xl font-bold">Hola, {profile?.name || user.email}</h1>
           <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
-            <div>ID# de Tienda: <span className="font-medium text-foreground">{profile?.store_id || "—"}</span></div>
+            <div>#ID de Carnet: <span className="font-medium text-foreground">{profile?.store_id || "—"}</span></div>
             <div>Tienda: <span className="font-medium text-foreground">{profile?.store_name || "—"}</span></div>
             <div className="text-xs">Cargo: <span className="font-medium text-foreground">{cargo}</span></div>
           </div>
@@ -223,8 +223,8 @@ function EmployeePanel() {
                 <p className="text-xs text-muted-foreground">Para cambiar tu email, contacta a soporte.</p>
               </div>
               <div className="space-y-2">
-                <Label>ID# de Tienda</Label>
-                <Input value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} />
+                <Label>#ID de Carnet</Label>
+                <Input value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ingresa el número de tu carnet" />
               </div>
               <div className="space-y-2">
                 <Label>Tienda</Label>
