@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowLeft, Plus, Trash2, FileUp, Search, X, Upload, Save } from "lucide-react";
@@ -184,6 +185,16 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [previewFit, setPreviewFit] = useState<"cover" | "contain">("cover");
+
+  useEffect(() => {
+    if (!pendingFile) { setPendingPreview(null); return; }
+    const url = URL.createObjectURL(pendingFile);
+    setPendingPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingFile]);
 
   useEffect(() => {
     setDraft(item ? { ...item } : null);
@@ -212,6 +223,17 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
     setDraft({ ...draft, image_url: data.publicUrl });
     setUploading(false);
     toast.success("✓ Imagen subida");
+  };
+
+  const pickFile = (f: File) => {
+    setPendingFile(f);
+    setPreviewFit("cover");
+  };
+  const confirmUpload = async () => {
+    if (!pendingFile) return;
+    const f = pendingFile;
+    setPendingFile(null);
+    await uploadImage(f);
   };
 
   const addExtraLocal = (name = "", price = 0) => {
