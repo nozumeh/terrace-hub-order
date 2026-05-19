@@ -246,7 +246,62 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
   };
 
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB (hard limit del bucket)
+  const TARGET_BYTES = 4.5 * 1024 * 1024; // margen de seguridad
+  const MAX_DIMENSION = 1600; // px (lado mayor)
+
+  /** Redimensiona + comprime en el navegador. GIF se mantiene tal cual para no romper la animación. */
+  const compressImage = async (file: File): Promise<File> => {
+    if (file.type === "image/gif") return file;
+    if (file.size <= TARGET_BYTES && file.type === "image/jpeg") return file;
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(new Error("No se pudo leer el archivo"));
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("Formato de imagen inválido"));
+      i.src = dataUrl;
+    });
+
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.fillStyle = "#ffffff"; // fondo para PNG con transparencia → JPEG
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    // Iterar calidad hasta entrar en el límite
+    const qualities = [0.9, 0.82, 0.72, 0.6, 0.5, 0.4];
+    for (const q of qualities) {
+      const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/jpeg", q));
+      if (blob && blob.size <= TARGET_BYTES) {
+        return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+      }
+    }
+    // Último recurso: reducir aún más el lado mayor
+    const smallCanvas = document.createElement("canvas");
+    smallCanvas.width = Math.round(w * 0.7);
+    smallCanvas.height = Math.round(h * 0.7);
+    const sctx = smallCanvas.getContext("2d");
+    if (sctx) {
+      sctx.fillStyle = "#ffffff";
+      sctx.fillRect(0, 0, smallCanvas.width, smallCanvas.height);
+      sctx.drawImage(img, 0, 0, smallCanvas.width, smallCanvas.height);
+      const blob: Blob | null = await new Promise((res) => smallCanvas.toBlob(res, "image/jpeg", 0.6));
+      if (blob) return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+    }
+    return file;
+  };
 
   const pickFile = (f: File) => {
     const typeOk = ALLOWED_TYPES.includes(f.type) || /\.(jpe?g|png|webp|gif)$/i.test(f.name);
@@ -254,13 +309,13 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
       toast.error("Formato no permitido. Usa JPG, PNG, WEBP o GIF");
       return;
     }
-    if (f.size > MAX_BYTES) {
-      const mb = (f.size / 1024 / 1024).toFixed(1);
-      toast.error(`La imagen pesa ${mb} MB. El máximo permitido es 5 MB`);
-      return;
-    }
     if (f.size === 0) {
       toast.error("El archivo está vacío o dañado");
+      return;
+    }
+    // Cota dura para evitar cargar 200 MB al canvas
+    if (f.size > 40 * 1024 * 1024) {
+      toast.error("La imagen supera 40 MB y no puede procesarse. Usa una más pequeña.");
       return;
     }
     setPendingFile(f);
@@ -270,7 +325,25 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
     if (!pendingFile) return;
     const f = pendingFile;
     setPendingFile(null);
-    await uploadImage(f);
+    setUploading(true);
+    try {
+      const optimized = await compressImage(f);
+      if (optimized !== f) {
+        const before = (f.size / 1024 / 1024).toFixed(1);
+        const after = (optimized.size / 1024 / 1024).toFixed(1);
+        toast.message(`Imagen optimizada: ${before} MB → ${after} MB`);
+      }
+      if (optimized.size > MAX_BYTES) {
+        toast.error("No se pudo comprimir por debajo de 5 MB. Prueba otra imagen.");
+        return;
+      }
+      await uploadImage(optimized);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error procesando la imagen";
+      toast.error(message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const addExtraLocal = (name = "", price = 0) => {
