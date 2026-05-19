@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { buildWhatsAppOrderMessage, openWhatsAppOrder, PAYMENT_LABELS, type PaymentMethod, type DeliveryType } from "@/lib/whatsapp-order";
+import { useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
@@ -31,6 +32,7 @@ function Checkout() {
   const employee = isEmployee(profile, roles);
   const discount = employee && items.length > 0 ? 1 : 0;
   const total = Math.max(0, subtotal - discount);
+  const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
   const [floor, setFloor] = useState("1");
@@ -105,6 +107,8 @@ function Checkout() {
       status: "pending",
       payment_method: paymentMethod,
       delivery_type: deliveryType,
+      bcv_rate_snapshot: bcvRate,
+      total_bs: Number((total * bcvRate).toFixed(2)),
     }).select().single();
     if (error || !order) { setBusy(false); toast.error(error?.message || "Error"); return; }
     const { error: itemsErr } = await supabase.from("order_items").insert(
@@ -137,6 +141,7 @@ function Checkout() {
         paymentMethod,
         subtotal, discount, total,
         notes: notes.trim(),
+        bcvRate, bcvDate,
       });
       openWhatsAppOrder(restoSettings?.whatsapp_number || "+584120690379", msg);
     }
@@ -219,10 +224,22 @@ function Checkout() {
               </label>
             ))}
           </RadioGroup>
+          <div className="rounded-lg border border-border bg-background p-3 text-xs">
+            <div className="font-semibold">💱 Tasa BCV: Bs. {bcvRate.toFixed(2)}/$</div>
+            <div className="text-muted-foreground">Válida al {bcvDate}</div>
+          </div>
           {paymentMethod === "pago_movil" && restoSettings?.pago_movil_info && (
             <div className="rounded-lg border border-border bg-background p-3 text-xs">
               <div className="mb-1 font-semibold uppercase tracking-wider text-muted-foreground">Datos Pago Móvil</div>
               <pre className="whitespace-pre-wrap font-sans text-foreground">{restoSettings.pago_movil_info}</pre>
+            </div>
+          )}
+          {paymentMethod === "pago_movil" && (
+            <div className="rounded-lg border-2 border-sky-500/40 bg-sky-500/10 p-4 text-center">
+              <div className="text-xs font-semibold uppercase tracking-wider text-sky-300">📱 Monto a transferir</div>
+              <div className="mt-1 font-heading text-2xl font-bold text-foreground">{formatBsLabel(total, bcvRate)}</div>
+              <div className="text-xs text-muted-foreground">(equivalente a ${total.toFixed(2)} USD)</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">Tasa BCV del día: {bcvRate.toFixed(2)} Bs/$</div>
             </div>
           )}
           {paymentMethod !== "en_caja" && (
@@ -256,7 +273,9 @@ function Checkout() {
           <div className="space-y-1 border-t border-border pt-3 text-sm">
             <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
             {employee && <div className="flex justify-between text-success"><span>Descuento empleado</span><span>-${discount.toFixed(2)}</span></div>}
-            <div className="flex justify-between pt-2 text-lg font-semibold"><span>Total</span><span className="text-gold">${total.toFixed(2)}</span></div>
+            <div className="flex justify-between pt-2 text-lg font-semibold"><span>Total USD</span><span className="text-gold">${total.toFixed(2)}</span></div>
+            <div className="flex justify-between text-sm font-medium"><span className="text-muted-foreground">Total Bs.</span><span>{formatBsLabel(total, bcvRate)}</span></div>
+            <div className="pt-1 text-[11px] text-muted-foreground">💱 Tasa BCV: {bcvRate.toFixed(2)} Bs/$</div>
           </div>
           <Button disabled={busy} onClick={placeOrder} size="lg" className="w-full bg-gold text-primary-foreground hover:bg-gold/90">
             {busy && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar Pedido
