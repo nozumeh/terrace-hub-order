@@ -317,7 +317,7 @@ function MenuPage() {
               const lowStock = i.stock_quantity !== null && i.stock_quantity > 0 && i.stock_quantity <= 5;
               const customizable = needsCustomization(i);
               return (
-                <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
+                <div key={i.id} className={`flex flex-col rounded-xl border bg-card p-3 sm:p-4 transition-colors ${unavailable ? "border-border opacity-60" : "border-border hover:border-gold/40"}`}>
                   {!unavailable && lowStock && (
                     <div className="mb-2 inline-flex w-fit items-center rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
                       Quedan {i.stock_quantity}
@@ -335,20 +335,20 @@ function MenuPage() {
                       </div>
                     )}
                   </div>
-                  <div className="font-medium leading-tight break-words">{i.name}</div>
-                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.description}</p>
-                  <div className="mt-3 flex items-end justify-between">
-                    <div>
+                  <div className="text-sm sm:text-base font-medium leading-snug break-words line-clamp-2 min-h-[2.5em]">{i.name}</div>
+                  <p className="mt-1 line-clamp-2 text-[11px] sm:text-xs leading-snug text-muted-foreground min-h-[2.4em]">{i.description}</p>
+                  <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
+                    <div className="min-w-0">
                       {employee ? (
                         <div className="leading-tight">
-                          <div className="text-xs text-muted-foreground line-through">${price.toFixed(2)}</div>
-                          <div className="text-lg font-bold text-success">${discounted.toFixed(2)}</div>
+                          <div className="text-[11px] text-muted-foreground line-through">${price.toFixed(2)}</div>
+                          <div className="text-base sm:text-lg font-bold text-success">${discounted.toFixed(2)}</div>
                         </div>
                       ) : (
-                        <div className="text-lg font-bold text-gold">${price.toFixed(2)}</div>
+                        <div className="text-base sm:text-lg font-bold text-gold">${price.toFixed(2)}</div>
                       )}
                     </div>
-                    <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="bg-gold text-primary-foreground hover:bg-gold/90">
+                    <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="h-8 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm bg-gold text-primary-foreground hover:bg-gold/90">
                       <Plus className="h-3 w-3" /> Agregar
                     </Button>
                   </div>
