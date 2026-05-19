@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Loader2, ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Save, Receipt, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { NotificationsBanner } from "@/components/NotificationsBanner";
@@ -22,10 +21,6 @@ interface ItemRow { order_id: string; name: string; quantity: number; subtotal: 
 interface RestaurantInfo {
   id: string; name: string; description: string | null; phone: string | null;
   address: string | null; hours: string | null; logo_url: string | null;
-  delivery_pickup: boolean; delivery_to_store: boolean;
-  payment_pago_movil: boolean; payment_whatsapp: boolean;
-  payment_en_caja: boolean; payment_efectivo: boolean;
-  whatsapp_number: string; pago_movil_info: string;
 }
 
 type Period = "today" | "week" | "month";
@@ -49,7 +44,7 @@ function Dashboard() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info").eq("owner_id", user.id).maybeSingle();
+      const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url").eq("owner_id", user.id).maybeSingle();
       if (!r) { setBusy(false); return; }
       setResto(r as RestaurantInfo);
       const { data: o } = await supabase.from("orders").select("id,total_final,status,created_at").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
@@ -120,14 +115,6 @@ function Dashboard() {
     const { error } = await supabase.from("restaurants").update({
       name: resto.name, description: resto.description ?? "", phone: resto.phone ?? "",
       address: resto.address ?? "", hours: resto.hours ?? "", logo_url: resto.logo_url ?? "",
-      delivery_pickup: resto.delivery_pickup,
-      delivery_to_store: resto.delivery_to_store,
-      payment_pago_movil: resto.payment_pago_movil,
-      payment_whatsapp: resto.payment_whatsapp,
-      payment_en_caja: resto.payment_en_caja,
-      payment_efectivo: resto.payment_efectivo,
-      whatsapp_number: resto.whatsapp_number ?? "",
-      pago_movil_info: resto.pago_movil_info ?? "",
     }).eq("id", resto.id);
     setSaving(false);
     if (error) toast.error(error.message); else toast.success("Información guardada");
@@ -252,89 +239,7 @@ function Dashboard() {
           <Button className="mt-4" onClick={saveInfo} disabled={saving}>{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Guardar</Button>
         </section>
 
-        <section id="pagos" className="scroll-mt-24 rounded-xl border border-border bg-card p-6">
-          <h2 className="mb-1 font-heading text-lg font-bold">Métodos de pago y entrega</h2>
-          <p className="mb-4 text-xs text-muted-foreground">Configura cómo los clientes reciben y pagan sus pedidos.</p>
-
-          <div className="space-y-4">
-            <div>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Opciones de entrega</h3>
-              <ToggleRow
-                title="Recibir pedido en tienda"
-                subtitle="Food runner lleva el pedido directamente a la tienda del empleado"
-                checked={resto.delivery_to_store}
-                onChange={(v) => setResto({ ...resto, delivery_to_store: v })}
-              />
-              <ToggleRow
-                title="Recoger en restaurante"
-                subtitle="El cliente recoge su pedido en el local"
-                checked={resto.delivery_pickup}
-                onChange={(v) => setResto({ ...resto, delivery_pickup: v })}
-              />
-            </div>
-
-            <div>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Métodos de pago</h3>
-              <ToggleRow
-                title="💳 Pago Móvil"
-                checked={resto.payment_pago_movil}
-                onChange={(v) => setResto({ ...resto, payment_pago_movil: v })}
-              />
-              {resto.payment_pago_movil && (
-                <div className="mb-3 ml-1 space-y-2">
-                  <Label className="text-xs">Datos de Pago Móvil (banco, teléfono, cédula)</Label>
-                  <Textarea
-                    rows={2}
-                    value={resto.pago_movil_info ?? ""}
-                    onChange={(e) => setResto({ ...resto, pago_movil_info: e.target.value })}
-                    placeholder="Banco Mercantil&#10;0412-1234567&#10;V-12345678"
-                  />
-                </div>
-              )}
-              <ToggleRow
-                title="📱 Pago por WhatsApp"
-                checked={resto.payment_whatsapp}
-                onChange={(v) => setResto({ ...resto, payment_whatsapp: v })}
-              />
-              {resto.payment_whatsapp && (
-                <div className="mb-3 ml-1 space-y-2">
-                  <Label className="text-xs">Número de WhatsApp</Label>
-                  <Input
-                    value={resto.whatsapp_number ?? ""}
-                    onChange={(e) => setResto({ ...resto, whatsapp_number: e.target.value })}
-                    placeholder="+584120690379"
-                  />
-                </div>
-              )}
-              <ToggleRow
-                title="🏪 Pago en local (en caja)"
-                subtitle="El cliente paga al recoger"
-                checked={resto.payment_en_caja}
-                onChange={(v) => setResto({ ...resto, payment_en_caja: v })}
-              />
-              <ToggleRow
-                title="💵 Pago en efectivo"
-                subtitle="El cliente paga al recibir"
-                checked={resto.payment_efectivo}
-                onChange={(v) => setResto({ ...resto, payment_efectivo: v })}
-              />
-            </div>
-          </div>
-          <Button className="mt-4" onClick={saveInfo} disabled={saving}>{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Guardar</Button>
-        </section>
       </div>
-    </div>
-  );
-}
-
-function ToggleRow({ title, subtitle, checked, onChange }: { title: string; subtitle?: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="mb-3 flex items-start justify-between gap-4 rounded-lg border border-border bg-background p-3">
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{title}</div>
-        {subtitle && <div className="mt-0.5 text-xs text-muted-foreground">{subtitle}</div>}
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }
