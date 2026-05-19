@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Briefcase, Store, Mail } from "lucide-react";
+import { Loader2, Briefcase, Store, Mail } from "lucide-react";
 
 export type AccountType = "customer" | "employee" | "restaurant_owner";
 export type StaffRole = "empleado" | "gerente" | "dueno";
@@ -32,8 +32,8 @@ interface Props {
   invitation?: InvitationData | null;
 }
 
-export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteToken = null, invitation = null }: Props) {
-  const [tab, setTab] = useState<AccountType>(defaultTab);
+export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteToken = null, invitation = null }: Props) {
+  const [tab, setTab] = useState<AccountType>(defaultTab === "customer" ? "employee" : defaultTab);
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -136,8 +136,7 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
 
       <Tabs value={tab} onValueChange={(v) => !lockTab && setTab(v as AccountType)} className="mt-6">
         {!lockTab && (
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="customer" className="gap-2"><User className="h-4 w-4" />Cliente</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="employee" className="gap-2"><Briefcase className="h-4 w-4" />Trabajador</TabsTrigger>
             <TabsTrigger value="restaurant_owner" className="gap-2"><Store className="h-4 w-4" />Negocio</TabsTrigger>
           </TabsList>
@@ -161,20 +160,14 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
             <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} />
           </div>
 
-          <TabsContent value="customer" className="m-0">
-            <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-              Como cliente puedes pedir comida y revisar tu historial. Si trabajas en City Market, elige <b>Trabajador</b> para tu descuento.
-            </p>
-          </TabsContent>
-
           <TabsContent value="employee" className="m-0 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="store">Nombre de la tienda</Label>
               <Input id="store" required={tab === "employee"} value={storeName} onChange={(e) => setStoreName(e.target.value)} maxLength={80} disabled={!!invitation} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="emp-store-id">ID# de Tienda</Label>
-              <Input id="emp-store-id" required={tab === "employee"} value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ej: 1234" />
+              <Label htmlFor="emp-store-id">#ID de Carnet</Label>
+              <Input id="emp-store-id" required={tab === "employee"} value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ingresa el número de tu carnet" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -224,7 +217,6 @@ export function RegisterForm({ defaultTab = "customer", lockTab = false, inviteT
           {!lockTab && (
             <div className="pt-1 text-center text-xs text-muted-foreground">
               Enlaces directos:{" "}
-              <Link to="/register/cliente" className="text-gold hover:underline">Cliente</Link> ·{" "}
               <Link to="/register/empleado" className="text-gold hover:underline">Trabajador</Link> ·{" "}
               <Link to="/register/restaurante" className="text-gold hover:underline">Negocio</Link>
             </div>
