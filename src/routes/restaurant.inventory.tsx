@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowLeft, Plus, Trash2, FileUp, Search, X, Upload, Save } from "lucide-react";
@@ -184,6 +185,16 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [previewFit, setPreviewFit] = useState<"cover" | "contain">("cover");
+
+  useEffect(() => {
+    if (!pendingFile) { setPendingPreview(null); return; }
+    const url = URL.createObjectURL(pendingFile);
+    setPendingPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingFile]);
 
   useEffect(() => {
     setDraft(item ? { ...item } : null);
@@ -212,6 +223,17 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
     setDraft({ ...draft, image_url: data.publicUrl });
     setUploading(false);
     toast.success("✓ Imagen subida");
+  };
+
+  const pickFile = (f: File) => {
+    setPendingFile(f);
+    setPreviewFit("cover");
+  };
+  const confirmUpload = async () => {
+    if (!pendingFile) return;
+    const f = pendingFile;
+    setPendingFile(null);
+    await uploadImage(f);
   };
 
   const addExtraLocal = (name = "", price = 0) => {
@@ -325,7 +347,7 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
             <div className="aspect-video w-full overflow-hidden rounded-md border border-border bg-muted">
               {draft.image_url ? <img src={draft.image_url} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">Sin imagen</div>}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); }} />
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => fileRef.current?.click()} disabled={uploading}>
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Subir nueva imagen
@@ -333,6 +355,54 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
               {draft.image_url && <Button variant="ghost" onClick={() => setDraft({ ...draft, image_url: "" })}><X className="h-4 w-4" /> Quitar</Button>}
             </div>
           </section>
+
+          <Dialog open={!!pendingFile} onOpenChange={(o) => { if (!o) setPendingFile(null); }}>
+            <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md sm:w-full">
+              <DialogHeader>
+                <DialogTitle>Vista previa</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div className="aspect-video w-full overflow-hidden rounded-md border border-border bg-muted">
+                  {pendingPreview && (
+                    <img
+                      src={pendingPreview}
+                      alt="preview"
+                      className={`h-full w-full ${previewFit === "cover" ? "object-cover" : "object-contain"}`}
+                    />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Así se verá el encuadre en el menú. Si la imagen aparece recortada, prueba “Ajustar completa”.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={previewFit === "cover" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setPreviewFit("cover")}
+                  >
+                    Rellenar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={previewFit === "contain" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setPreviewFit("contain")}
+                  >
+                    Ajustar completa
+                  </Button>
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="ghost" onClick={() => setPendingFile(null)} disabled={uploading}>Cancelar</Button>
+                <Button onClick={confirmUpload} disabled={uploading}>
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Confirmar y subir
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Extras */}
           <section className="space-y-3">
