@@ -17,6 +17,7 @@ interface Customizations {
   variant?: string | null;
   extras?: { id: string; name: string; price: number }[];
   removed?: { id: string; name: string }[];
+  notes?: string;
 }
 interface OrderItem {
   id: string; order_id: string; name: string; quantity: number;
@@ -208,6 +209,12 @@ function KitchenView() {
                               <Minus className="h-3 w-3" /> SIN {r.name.toLowerCase()}
                             </div>
                           ))}
+                          {c.notes && (
+                            <div className="ml-8 mt-2 rounded border border-gold/40 bg-gold/10 p-2 text-xs">
+                              <div className="font-bold uppercase text-gold">Nota cocina</div>
+                              <div className="mt-1 whitespace-pre-wrap">{c.notes}</div>
+                            </div>
+                          )}
                         </li>
                       );
                     })}
