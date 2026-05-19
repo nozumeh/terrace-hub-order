@@ -42,6 +42,7 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
   const [phone, setPhone] = useState("");
   const [storeName, setStoreName] = useState(invitation?.store_name ?? "");
   const [floor, setFloor] = useState(invitation?.store_floor ?? "1");
+  const [localNumber, setLocalNumber] = useState("");
   const [staffRole, setStaffRole] = useState<StaffRole>((invitation?.staff_role as StaffRole) ?? "empleado");
   const [businessName, setBusinessName] = useState("");
   const [businessDesc, setBusinessDesc] = useState("");
@@ -67,6 +68,7 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
         meta.store_name = storeName;
         meta.store_floor = floor;
         meta.store_id = storeId;
+        meta.local_number = localNumber;
       }
       const { data, error } = await supabase.auth.signUp({
         email, password,
@@ -164,6 +166,10 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
             <div className="space-y-2">
               <Label htmlFor="store">Nombre de la tienda</Label>
               <Input id="store" required={tab === "employee"} value={storeName} onChange={(e) => setStoreName(e.target.value)} maxLength={80} disabled={!!invitation} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="local-number">Número de local</Label>
+              <Input id="local-number" required={tab === "employee"} value={localNumber} onChange={(e) => setLocalNumber(e.target.value)} maxLength={40} placeholder="Ej: 12B" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="emp-store-id">#ID de Carnet</Label>
