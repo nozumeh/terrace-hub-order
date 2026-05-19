@@ -489,6 +489,7 @@ export type Database = {
           email: string | null
           id: string
           is_employee: boolean
+          local_number: string | null
           name: string
           phone: string | null
           promo_code: string | null
@@ -503,6 +504,7 @@ export type Database = {
           email?: string | null
           id: string
           is_employee?: boolean
+          local_number?: string | null
           name?: string
           phone?: string | null
           promo_code?: string | null
@@ -517,6 +519,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_employee?: boolean
+          local_number?: string | null
           name?: string
           phone?: string | null
           promo_code?: string | null
