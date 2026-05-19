@@ -22,6 +22,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantRunnersRouteImport } from './routes/restaurant.runners'
+import { Route as RestaurantPaymentsRouteImport } from './routes/restaurant.payments'
 import { Route as RestaurantMenuRouteImport } from './routes/restaurant.menu'
 import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitchen'
 import { Route as RestaurantInventoryRouteImport } from './routes/restaurant.inventory'
@@ -102,6 +103,11 @@ const IndexRoute = IndexRouteImport.update({
 const RestaurantRunnersRoute = RestaurantRunnersRouteImport.update({
   id: '/runners',
   path: '/runners',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantPaymentsRoute = RestaurantPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => RestaurantRoute,
 } as any)
 const RestaurantMenuRoute = RestaurantMenuRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/payments': typeof RestaurantPaymentsRoute
   '/restaurant/runners': typeof RestaurantRunnersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/payments': typeof RestaurantPaymentsRoute
   '/restaurant/runners': typeof RestaurantRunnersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/restaurant/inventory': typeof RestaurantInventoryRoute
   '/restaurant/kitchen': typeof RestaurantKitchenRoute
   '/restaurant/menu': typeof RestaurantMenuRoute
+  '/restaurant/payments': typeof RestaurantPaymentsRoute
   '/restaurant/runners': typeof RestaurantRunnersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/payments'
     | '/restaurant/runners'
     | '/lovable/email/suppression'
     | '/lovable/email/auth/preview'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/payments'
     | '/restaurant/runners'
     | '/lovable/email/suppression'
     | '/lovable/email/auth/preview'
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | '/restaurant/inventory'
     | '/restaurant/kitchen'
     | '/restaurant/menu'
+    | '/restaurant/payments'
     | '/restaurant/runners'
     | '/lovable/email/suppression'
     | '/lovable/email/auth/preview'
@@ -492,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/runners'
       fullPath: '/restaurant/runners'
       preLoaderRoute: typeof RestaurantRunnersRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/payments': {
+      id: '/restaurant/payments'
+      path: '/payments'
+      fullPath: '/restaurant/payments'
+      preLoaderRoute: typeof RestaurantPaymentsRouteImport
       parentRoute: typeof RestaurantRoute
     }
     '/restaurant/menu': {
@@ -631,6 +650,7 @@ interface RestaurantRouteChildren {
   RestaurantInventoryRoute: typeof RestaurantInventoryRoute
   RestaurantKitchenRoute: typeof RestaurantKitchenRoute
   RestaurantMenuRoute: typeof RestaurantMenuRoute
+  RestaurantPaymentsRoute: typeof RestaurantPaymentsRoute
   RestaurantRunnersRoute: typeof RestaurantRunnersRoute
 }
 
@@ -640,6 +660,7 @@ const RestaurantRouteChildren: RestaurantRouteChildren = {
   RestaurantInventoryRoute: RestaurantInventoryRoute,
   RestaurantKitchenRoute: RestaurantKitchenRoute,
   RestaurantMenuRoute: RestaurantMenuRoute,
+  RestaurantPaymentsRoute: RestaurantPaymentsRoute,
   RestaurantRunnersRoute: RestaurantRunnersRoute,
 }
 

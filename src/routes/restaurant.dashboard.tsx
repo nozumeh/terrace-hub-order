@@ -21,10 +21,6 @@ interface ItemRow { order_id: string; name: string; quantity: number; subtotal: 
 interface RestaurantInfo {
   id: string; name: string; description: string | null; phone: string | null;
   address: string | null; hours: string | null; logo_url: string | null;
-  delivery_pickup: boolean; delivery_to_store: boolean;
-  payment_pago_movil: boolean; payment_whatsapp: boolean;
-  payment_en_caja: boolean; payment_efectivo: boolean;
-  whatsapp_number: string; pago_movil_info: string;
 }
 
 type Period = "today" | "week" | "month";
@@ -48,7 +44,7 @@ function Dashboard() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info").eq("owner_id", user.id).maybeSingle();
+      const { data: r } = await supabase.from("restaurants").select("id,name,description,phone,address,hours,logo_url").eq("owner_id", user.id).maybeSingle();
       if (!r) { setBusy(false); return; }
       setResto(r as RestaurantInfo);
       const { data: o } = await supabase.from("orders").select("id,total_final,status,created_at").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(500);
@@ -119,14 +115,6 @@ function Dashboard() {
     const { error } = await supabase.from("restaurants").update({
       name: resto.name, description: resto.description ?? "", phone: resto.phone ?? "",
       address: resto.address ?? "", hours: resto.hours ?? "", logo_url: resto.logo_url ?? "",
-      delivery_pickup: resto.delivery_pickup,
-      delivery_to_store: resto.delivery_to_store,
-      payment_pago_movil: resto.payment_pago_movil,
-      payment_whatsapp: resto.payment_whatsapp,
-      payment_en_caja: resto.payment_en_caja,
-      payment_efectivo: resto.payment_efectivo,
-      whatsapp_number: resto.whatsapp_number ?? "",
-      pago_movil_info: resto.pago_movil_info ?? "",
     }).eq("id", resto.id);
     setSaving(false);
     if (error) toast.error(error.message); else toast.success("Información guardada");
