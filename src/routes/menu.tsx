@@ -335,8 +335,8 @@ function MenuPage() {
                       </div>
                     )}
                   </div>
-                  <div className="text-sm sm:text-base font-medium leading-snug break-words line-clamp-2 min-h-[2.5em]">{i.name}</div>
-                  <p className="mt-1 line-clamp-2 text-[11px] sm:text-xs leading-snug text-muted-foreground min-h-[2.4em]">{i.description}</p>
+                  <h3 className="text-[15px] sm:text-base font-semibold leading-tight tracking-tight break-words line-clamp-2 min-h-[2.6em]">{i.name}</h3>
+                  <p className="mt-1.5 line-clamp-3 sm:line-clamp-2 text-[12px] sm:text-[13px] leading-relaxed text-muted-foreground min-h-[3.6em] sm:min-h-[2.6em]">{i.description}</p>
                   <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
                     <div className="min-w-0">
                       {employee ? (
