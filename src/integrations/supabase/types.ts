@@ -450,11 +450,12 @@ export type Database = {
         Row: {
           bcv_rate_snapshot: number | null
           created_at: string
+          customer_id: string
           delivered_at: string | null
           delivery_floor: string
           delivery_store: string
           delivery_type: string
-          discount_applied: number
+          discount_amount: number
           id: string
           notes: string | null
           order_number: number
@@ -462,20 +463,21 @@ export type Database = {
           payment_method: string | null
           restaurant_id: string
           runner_id: string | null
-          status: Database["public"]["Enums"]["order_status"]
-          total_before_discount: number
+          status: string
+          subtotal: number
+          total: number
           total_bs: number | null
-          total_final: number
-          user_id: string
+          updated_at: string
         }
         Insert: {
           bcv_rate_snapshot?: number | null
           created_at?: string
+          customer_id: string
           delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
           delivery_type?: string
-          discount_applied?: number
+          discount_amount?: number
           id?: string
           notes?: string | null
           order_number?: number
@@ -483,20 +485,21 @@ export type Database = {
           payment_method?: string | null
           restaurant_id: string
           runner_id?: string | null
-          status?: Database["public"]["Enums"]["order_status"]
-          total_before_discount: number
+          status?: string
+          subtotal: number
+          total: number
           total_bs?: number | null
-          total_final: number
-          user_id: string
+          updated_at?: string
         }
         Update: {
           bcv_rate_snapshot?: number | null
           created_at?: string
+          customer_id?: string
           delivered_at?: string | null
           delivery_floor?: string
           delivery_store?: string
           delivery_type?: string
-          discount_applied?: number
+          discount_amount?: number
           id?: string
           notes?: string | null
           order_number?: number
@@ -504,11 +507,11 @@ export type Database = {
           payment_method?: string | null
           restaurant_id?: string
           runner_id?: string | null
-          status?: Database["public"]["Enums"]["order_status"]
-          total_before_discount?: number
+          status?: string
+          subtotal?: number
+          total?: number
           total_bs?: number | null
-          total_final?: number
-          user_id?: string
+          updated_at?: string
         }
         Relationships: [
           {

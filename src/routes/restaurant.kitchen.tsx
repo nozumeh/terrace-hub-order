@@ -11,7 +11,7 @@ export const Route = createFileRoute("/restaurant/kitchen")({ component: Kitchen
 interface Order {
   id: string; order_number: number; status: string; created_at: string;
   delivery_store: string; delivery_floor: string; notes: string;
-  user_id: string;
+  customer_id: string;
 }
 interface Customizations {
   variant?: string | null;
@@ -72,7 +72,7 @@ function KitchenView() {
     if (ords.length) {
       const [{ data: oi }, { data: ps }] = await Promise.all([
         supabase.from("order_items").select("*").in("order_id", ords.map((x) => x.id)),
-        supabase.from("profiles").select("id,name").in("id", Array.from(new Set(ords.map((x) => x.user_id)))),
+        supabase.from("profiles").select("id,name").in("id", Array.from(new Set(ords.map((x) => x.customer_id)))),
       ]);
       const grouped: Record<string, OrderItem[]> = {};
       ((oi ?? []) as OrderItem[]).forEach((it) => { (grouped[it.order_id] ??= []).push(it); });
@@ -223,7 +223,7 @@ function KitchenView() {
                   <div className="mt-3 border-t border-zinc-800 pt-3 text-xs text-zinc-400">
                     📍 {o.delivery_store} — PISO {o.delivery_floor}
                   </div>
-                  {profiles[o.user_id] && <div className="mt-1 text-xs text-zinc-400">👤 {profiles[o.user_id]}</div>}
+                  {profiles[o.customer_id] && <div className="mt-1 text-xs text-zinc-400">👤 {profiles[o.customer_id]}</div>}
                   {o.notes && (
                     <div className="mt-2 rounded border border-gold/40 bg-gold/10 p-2 text-xs">
                       <div className="font-bold uppercase text-gold">Notas</div>

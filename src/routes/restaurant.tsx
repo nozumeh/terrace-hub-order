@@ -16,7 +16,7 @@ export const Route = createFileRoute("/restaurant")({ component: RestaurantPanel
 interface Order {
   id: string; order_number: number; status: string; created_at: string;
   delivery_store: string; delivery_floor: string; notes: string;
-  user_id: string;
+  customer_id: string;
 }
 interface OrderItem { id: string; order_id: string; name: string; quantity: number }
 interface Item { id: string; name: string; price: number; is_available: boolean; category: string }

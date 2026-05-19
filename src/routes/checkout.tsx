@@ -7,18 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useAuth, isEmployee } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { buildWhatsAppOrderMessage, openWhatsAppOrder, PAYMENT_LABELS, type PaymentMethod, type DeliveryType } from "@/lib/whatsapp-order";
-import { useBcvRate, formatBsLabel } from "@/lib/bcv";
+import { DEFAULT_BCV_RATE, useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
 const SERVICE_FEE = 0.5;
 const EMPLOYEE_DISCOUNT_RATE = 0.10;
+const ORDER_RESTAURANT_ID = "a0000000-0000-0000-0000-000000000001";
+const roundCurrency = (value: number) => Number(value.toFixed(2));
 
 interface RestaurantSettings {
   name: string;
@@ -31,11 +33,11 @@ interface RestaurantSettings {
 function Checkout() {
   const navigate = useNavigate();
   const { user, profile, roles, loading } = useAuth();
-  const { items, subtotal, restaurantId, clear } = useCart();
-  const employee = isEmployee(profile, roles);
-  const discount = employee && items.length > 0 ? subtotal * EMPLOYEE_DISCOUNT_RATE : 0;
+  const { items, subtotal, clear } = useCart();
+  const employee = roles.some((role) => role === "supervisor" || role === "worker");
+  const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
   const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
-  const total = Math.max(0, subtotal - discount + serviceFee);
+  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee));
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
@@ -58,17 +60,17 @@ function Checkout() {
   }, [profile]);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (items.length === 0) return;
     (async () => {
       const { data } = await supabase.from("restaurants")
         .select("name,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info")
-        .eq("id", restaurantId).maybeSingle();
+        .eq("id", ORDER_RESTAURANT_ID).maybeSingle();
       if (data) {
         setRestoSettings(data as RestaurantSettings);
         if (!data.delivery_to_store && data.delivery_pickup) setDeliveryType("pickup");
       }
     })();
-  }, [restaurantId]);
+  }, [items.length]);
 
   const availablePayments = useMemo<PaymentMethod[]>(() => {
     if (!restoSettings) return ["pago_movil", "whatsapp", "en_caja", "efectivo"];
@@ -95,24 +97,32 @@ function Checkout() {
     : [{ v: "to_store" as const, t: "Recibir en mi tienda", s: "El food runner lleva tu pedido" }];
 
   const placeOrder = async () => {
-    if (!user || !restaurantId || items.length === 0) return;
+    if (!user || items.length === 0) return;
     if (!paymentMethod) { toast.error("Selecciona un método de pago"); return; }
     if (showStoreFields && !store.trim()) { toast.error("Indica el nombre de tu tienda"); return; }
     setBusy(true);
+    const { data: rateData, error: rateError } = await supabase
+      .from("bcv_rates")
+      .select("rate, date")
+      .order("date", { ascending: false })
+      .limit(1)
+      .single();
+    if (rateError) console.error("BCV rate error:", rateError);
+    const bcvRateSnapshot = Number(rateData?.rate ?? bcvRate ?? DEFAULT_BCV_RATE);
     const { data: order, error } = await supabase.from("orders").insert({
-      user_id: user.id,
-      restaurant_id: restaurantId,
-      total_before_discount: subtotal,
-      discount_applied: discount,
-      total_final: total,
+      customer_id: user.id,
+      restaurant_id: ORDER_RESTAURANT_ID,
+      subtotal,
+      discount_amount: discount,
+      total,
       delivery_store: showStoreFields ? store.trim() : (restoSettings?.name ?? "Recoger en local"),
       delivery_floor: showStoreFields ? floor : "—",
       notes: notes.trim(),
       status: "pending",
       payment_method: paymentMethod,
       delivery_type: deliveryType,
-      bcv_rate_snapshot: bcvRate,
-      total_bs: Number((total * bcvRate).toFixed(2)),
+      bcv_rate_snapshot: bcvRateSnapshot,
+      total_bs: Number((total * bcvRateSnapshot).toFixed(2)),
     }).select().single();
     if (error || !order) {
       console.error("Order error:", error);
@@ -151,7 +161,7 @@ function Checkout() {
         paymentMethod,
         subtotal, discount, total, serviceFee,
         notes: notes.trim(),
-        bcvRate, bcvDate,
+        bcvRate: bcvRateSnapshot, bcvDate: rateData?.date ?? bcvDate,
       });
       openWhatsAppOrder(restoSettings?.whatsapp_number || "+584120690379", msg);
     }
