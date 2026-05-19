@@ -334,11 +334,6 @@ function MenuPage() {
                         Quedan {i.stock_quantity}
                       </div>
                     )}
-                    {!unavailable && customizable && (
-                      <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-background/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold ring-1 ring-gold/40">
-                        <Settings2 className="h-3 w-3" /> Personalizable
-                      </div>
-                    )}
                   </div>
                   <div className="font-medium">{i.name}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.description}</p>
