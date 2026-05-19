@@ -214,18 +214,55 @@ function EditPanel({ item, isNew, categories, restaurantId, onClose, onSaved }: 
   if (!draft) return null;
 
   const uploadImage = async (file: File) => {
-    if (!restaurantId) return;
+    if (!restaurantId) { toast.error("No se identificó el restaurante"); return; }
     setUploading(true);
-    const path = `${restaurantId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const { error } = await supabase.storage.from("menu-images").upload(path, file, { upsert: true });
-    if (error) { setUploading(false); toast.error(error.message); return; }
-    const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
-    setDraft({ ...draft, image_url: data.publicUrl });
-    setUploading(false);
-    toast.success("✓ Imagen subida");
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${restaurantId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from("menu-images")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) {
+        const msg = error.message?.toLowerCase() ?? "";
+        if (msg.includes("row-level security") || msg.includes("unauthorized") || msg.includes("permission")) {
+          toast.error("No tienes permiso para subir imágenes a este restaurante");
+        } else if (msg.includes("payload") || msg.includes("too large")) {
+          toast.error("La imagen es demasiado grande. Máx. 5 MB");
+        } else {
+          toast.error(`No se pudo subir la imagen: ${error.message}`);
+        }
+        return;
+      }
+      const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
+      if (!data?.publicUrl) { toast.error("No se pudo obtener la URL pública"); return; }
+      setDraft({ ...draft, image_url: data.publicUrl });
+      toast.success("✓ Imagen subida");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error desconocido";
+      toast.error(`Error al subir: ${message}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
   const pickFile = (f: File) => {
+    const typeOk = ALLOWED_TYPES.includes(f.type) || /\.(jpe?g|png|webp|gif)$/i.test(f.name);
+    if (!typeOk) {
+      toast.error("Formato no permitido. Usa JPG, PNG, WEBP o GIF");
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      const mb = (f.size / 1024 / 1024).toFixed(1);
+      toast.error(`La imagen pesa ${mb} MB. El máximo permitido es 5 MB`);
+      return;
+    }
+    if (f.size === 0) {
+      toast.error("El archivo está vacío o dañado");
+      return;
+    }
     setPendingFile(f);
     setPreviewFit("cover");
   };
