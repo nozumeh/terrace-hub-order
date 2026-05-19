@@ -91,7 +91,7 @@ export function CartItemEditor({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-sm overflow-hidden p-0">
+      <DialogContent className="max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-hidden p-0 sm:w-full">
         <DialogHeader>
           <DialogTitle className="px-5 pt-5">{item?.name ?? "Editar"}</DialogTitle>
         </DialogHeader>
@@ -100,9 +100,13 @@ export function CartItemEditor({
           <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-gold" /></div>
         ) : (
           <div className="max-h-[64vh] space-y-4 overflow-y-auto px-5 pb-2">
-            <div className="aspect-[4/3] w-full overflow-hidden rounded-lg border border-border bg-background">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-border bg-muted">
               {data.image_url ? (
-                <img src={data.image_url} alt={data.name} className="h-full w-full object-contain" />
+                <img
+                  src={data.image_url}
+                  alt={data.name}
+                  className="absolute inset-0 h-full w-full object-contain p-2"
+                />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-5xl">🍔</div>
               )}

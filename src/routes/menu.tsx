@@ -365,7 +365,7 @@ function MenuPage() {
       </div>
 
       <Dialog open={!!customizeItem} onOpenChange={(v) => { if (!v) closeCustomize(); }}>
-        <DialogContent className="max-h-[92vh] max-w-md overflow-hidden p-0">
+        <DialogContent className="max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-hidden p-0 sm:w-full">
           <DialogHeader>
             <DialogTitle className="sr-only">{customizeItem?.name}</DialogTitle>
           </DialogHeader>
@@ -382,9 +382,14 @@ function MenuPage() {
             const hasRemovables = (it.menu_item_removable_options?.length ?? 0) > 0;
             return (
               <>
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-background md:aspect-[16/11]">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted sm:aspect-[16/11]">
                   {it.image_url ? (
-                    <img src={it.image_url} alt={it.name} className="h-full w-full object-contain" />
+                    <img
+                      src={it.image_url}
+                      alt={it.name}
+                      loading="eager"
+                      className="absolute inset-0 h-full w-full object-contain p-2"
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-6xl">🍔</div>
                   )}
