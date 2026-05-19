@@ -109,7 +109,7 @@ function Checkout() {
       .single();
     if (rateError) console.error("BCV rate error:", rateError);
     const bcvRateSnapshot = Number(rateData?.rate ?? bcvRate ?? DEFAULT_BCV_RATE);
-    const { data: order, error } = await supabase.from("orders").insert({
+    const orderData = {
       customer_id: user.id,
       restaurant_id: ORDER_RESTAURANT_ID,
       subtotal,
@@ -123,14 +123,20 @@ function Checkout() {
       delivery_type: deliveryType,
       bcv_rate_snapshot: bcvRateSnapshot,
       total_bs: Number((total * bcvRateSnapshot).toFixed(2)),
-    }).select().single();
-    if (error || !order) {
-      console.error("Order error:", error);
+    };
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({ ...orderData })
+      .select()
+      .single();
+    if (orderError || !order) {
+      console.error("ORDER INSERT FAILED:", JSON.stringify(orderError));
+      alert("Error guardando orden: " + (orderError?.message || "desconocido") + " Code: " + (orderError?.code || "unknown"));
       setBusy(false);
-      toast.error("Error al guardar pedido: " + (error?.message || "desconocido"));
+      toast.error("Error al guardar pedido: " + (orderError?.message || "desconocido"));
       return;
     }
-    console.log("Order saved to Supabase:", order.id);
+    console.log("ORDER SAVED:", order.id, "to Supabase project fgqoixfbnivyctduubwz");
     const { error: itemsErr } = await supabase.from("order_items").insert(
       items.map((i) => ({
         order_id: order.id, menu_item_id: i.menu_item_id, name: i.name,
