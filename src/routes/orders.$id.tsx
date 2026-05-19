@@ -27,6 +27,7 @@ interface ItemCustomizations {
   variant?: string | null;
   extras?: { id: string; name: string; price: number }[];
   removed?: { id: string; name: string }[];
+  notes?: string;
 }
 interface Item { id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
 
@@ -152,7 +153,7 @@ function OrderStatus() {
                   <span>{i.quantity}× {i.name}</span>
                   <span>${Number(i.subtotal).toFixed(2)}</span>
                 </div>
-                {(i.customizations?.variant || (i.customizations?.extras?.length ?? 0) > 0 || (i.customizations?.removed?.length ?? 0) > 0) && (
+                {(i.customizations?.variant || (i.customizations?.extras?.length ?? 0) > 0 || (i.customizations?.removed?.length ?? 0) > 0 || i.customizations?.notes) && (
                   <ul className="ml-4 text-xs text-muted-foreground">
                     {i.customizations?.variant && <li>· {i.customizations.variant}</li>}
                     {i.customizations?.extras?.map((e) => (
@@ -161,6 +162,9 @@ function OrderStatus() {
                     {i.customizations?.removed?.map((r) => (
                       <li key={`r-${r.id}`}>− sin {r.name}</li>
                     ))}
+                    {i.customizations?.notes && (
+                      <li className="mt-1 italic text-gold/80">📝 {i.customizations.notes}</li>
+                    )}
                   </ul>
                 )}
               </li>
