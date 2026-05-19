@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, isEmployee } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -62,6 +63,8 @@ function MenuPage() {
   const [chosenExtras, setChosenExtras] = useState<Set<string>>(new Set());
   const [chosenRemoved, setChosenRemoved] = useState<Set<string>>(new Set());
   const [qty, setQty] = useState<number>(1);
+  const [notes, setNotes] = useState<string>("");
+  const [stage, setStage] = useState<"preview" | "edit">("preview");
   const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
   const [navMs, setNavMs] = useState<number | null>(null);
 
@@ -177,6 +180,8 @@ function MenuPage() {
     setChosenExtras(new Set());
     setChosenRemoved(new Set());
     setQty(1);
+    setNotes("");
+    setStage("preview");
     setCustomizeItem(i);
   };
 
@@ -186,6 +191,8 @@ function MenuPage() {
     setChosenExtras(new Set());
     setChosenRemoved(new Set());
     setQty(1);
+    setNotes("");
+    setStage("preview");
   };
 
   const toggleSet = (set: Set<string>, id: string) => {
@@ -208,6 +215,7 @@ function MenuPage() {
       variant: variantChoice || null,
       extras: extras.map((e) => ({ id: e.id, name: e.name, price: Number(e.price) })),
       removed: removed.map((r) => ({ id: r.id, name: r.name })),
+      notes: notes.trim() || undefined,
     };
     for (let n = 0; n < qty; n++) add(payload);
     toast.success(`${customizeItem.name} agregado${qty > 1 ? ` ×${qty}` : ""}`);
