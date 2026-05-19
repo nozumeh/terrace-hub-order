@@ -150,24 +150,29 @@ function Checkout() {
       return;
     }
     console.log("ORDER SAVED:", order.id, "to Supabase project fgqoixfbnivyctduubwz");
-    for (const item of items) {
+    const cartItems = items;
+    console.log("About to insert items:", JSON.stringify(cartItems));
+    console.log("Order ID for items:", order.id);
+    for (const item of cartItems) {
+      const orderItemPayload = {
+        order_id: order.id,
+        menu_item_id: item.menu_item_id,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        subtotal: item.unit_price * item.quantity,
+        customizations: {
+          base_price: item.base_price,
+          variant: item.variant,
+          extras: item.extras || [],
+          removed: item.removed || [],
+          notes: item.notes || null,
+        },
+      };
+      console.log("Inserting order item payload:", JSON.stringify(orderItemPayload));
       const { data: orderItem, error: itemError } = await supabase
         .from("order_items")
-        .insert({
-          order_id: order.id,
-          menu_item_id: item.menu_item_id,
-          name: item.name,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          subtotal: item.unit_price * item.quantity,
-          customizations: {
-            base_price: item.base_price,
-            variant: item.variant,
-            extras: item.extras || [],
-            removed: item.removed || [],
-            notes: item.notes || null,
-          } as unknown as never,
-        })
+        .insert(orderItemPayload as never)
         .select()
         .single();
       if (itemError) {
