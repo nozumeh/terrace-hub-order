@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, type CartItem } from "@/lib/cart";
@@ -33,6 +34,7 @@ export function CartItemEditor({
   const [variant, setVariant] = useState<string>("");
   const [extras, setExtras] = useState<Set<string>>(new Set());
   const [removed, setRemoved] = useState<Set<string>>(new Set());
+  const [notes, setNotes] = useState<string>("");
 
   useEffect(() => {
     if (!open || !item) return;
@@ -53,6 +55,7 @@ export function CartItemEditor({
       setVariant(item.variant ?? (Array.isArray(mi.options) && mi.options.length ? mi.options[0] : ""));
       setExtras(new Set(item.extras.map((e) => e.id)));
       setRemoved(new Set(item.removed.map((r) => r.id)));
+      setNotes(item.notes ?? "");
       setLoading(false);
     })();
   }, [open, item, onOpenChange]);
@@ -80,6 +83,7 @@ export function CartItemEditor({
       variant: variant || null,
       extras: chosenExtras,
       removed: chosenRemoved,
+      notes: notes.trim() || undefined,
     });
     toast.success("Cambios guardados");
     onOpenChange(false);
@@ -142,8 +146,23 @@ export function CartItemEditor({
             {data.menu_item_extras.length === 0 &&
              data.menu_item_removable_options.length === 0 &&
              (!Array.isArray(data.options) || data.options.length === 0) && (
-              <p className="text-sm text-muted-foreground">Este plato no tiene opciones configurables.</p>
+              <p className="text-sm text-muted-foreground">Este plato no tiene extras ni ingredientes para quitar.</p>
             )}
+
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Notas para la cocina
+              </div>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ej: término medio, sin sal, alergia a nueces…"
+                rows={3}
+                maxLength={300}
+                className="resize-none"
+              />
+              <div className="mt-1 text-right text-[10px] text-muted-foreground">{notes.length}/300</div>
+            </div>
           </div>
         )}
 
