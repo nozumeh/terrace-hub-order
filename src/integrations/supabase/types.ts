@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      bcv_rates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          notes: string | null
+          rate: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          rate: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          rate?: number
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -421,6 +448,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          bcv_rate_snapshot: number | null
           created_at: string
           delivered_at: string | null
           delivery_floor: string
@@ -436,10 +464,12 @@ export type Database = {
           runner_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_before_discount: number
+          total_bs: number | null
           total_final: number
           user_id: string
         }
         Insert: {
+          bcv_rate_snapshot?: number | null
           created_at?: string
           delivered_at?: string | null
           delivery_floor?: string
@@ -455,10 +485,12 @@ export type Database = {
           runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_before_discount: number
+          total_bs?: number | null
           total_final: number
           user_id: string
         }
         Update: {
+          bcv_rate_snapshot?: number | null
           created_at?: string
           delivered_at?: string | null
           delivery_floor?: string
@@ -474,6 +506,7 @@ export type Database = {
           runner_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_before_discount?: number
+          total_bs?: number | null
           total_final?: number
           user_id?: string
         }
@@ -745,6 +778,7 @@ export type Database = {
         Returns: number
       }
       generate_promo_code: { Args: never; Returns: string }
+      get_current_bcv_rate: { Args: never; Returns: number }
       get_invitation_by_token: {
         Args: { _token: string }
         Returns: {
