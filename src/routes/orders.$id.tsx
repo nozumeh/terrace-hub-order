@@ -19,11 +19,11 @@ const STEPS = [
 ] as const;
 
 interface Order {
-  id: string; order_number: number; status: string; total_final: number;
+  id: string; order_number: number; status: string; total: number;
   delivery_store: string; delivery_floor: string; restaurant_id: string;
   notes: string;
-  total_before_discount: number;
-  discount_applied: number;
+  subtotal: number;
+  discount_amount: number;
   payment_method: PaymentMethod | null;
   delivery_type: DeliveryType | null;
   created_at: string;
@@ -113,9 +113,9 @@ function OrderStatus() {
       deliveryStore: order.delivery_store,
       deliveryFloor: order.delivery_floor,
       paymentMethod: (order.payment_method ?? "whatsapp") as PaymentMethod,
-      subtotal: Number(order.total_before_discount),
-      discount: Number(order.discount_applied),
-      total: Number(order.total_final),
+      subtotal: Number(order.subtotal),
+      discount: Number(order.discount_amount),
+      total: Number(order.total),
       notes: order.notes,
       bcvRate: Number(order.bcv_rate_snapshot ?? 0) || undefined,
       bcvDate: order.created_at.slice(0, 10),
@@ -225,16 +225,16 @@ function OrderStatus() {
             ))}
           </ul>
           <div className="mt-4 space-y-1 border-t border-border pt-3 text-sm">
-            <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${Number(order.total_before_discount).toFixed(2)}</span></div>
-            {Number(order.discount_applied) > 0 && (
-              <div className="flex justify-between text-success"><span>Descuento</span><span>-${Number(order.discount_applied).toFixed(2)}</span></div>
+            <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${Number(order.subtotal).toFixed(2)}</span></div>
+            {Number(order.discount_amount) > 0 && (
+              <div className="flex justify-between text-success"><span>Descuento</span><span>-${Number(order.discount_amount).toFixed(2)}</span></div>
             )}
             <div className="flex justify-between border-t border-border pt-2 text-lg font-semibold">
-              <span>Total</span><span className="text-gold">${Number(order.total_final).toFixed(2)} USD</span>
+              <span>Total</span><span className="text-gold">${Number(order.total).toFixed(2)} USD</span>
             </div>
             <div className="flex justify-between text-base font-medium">
               <span className="text-muted-foreground">Total Bs.</span>
-              <span>{formatBsLabel(Number(order.total_final), Number(order.bcv_rate_snapshot ?? DEFAULT_BCV_RATE))}</span>
+              <span>{formatBsLabel(Number(order.total), Number(order.bcv_rate_snapshot ?? DEFAULT_BCV_RATE))}</span>
             </div>
             {order.bcv_rate_snapshot && (
               <div className="pt-1 text-[11px] text-muted-foreground">
