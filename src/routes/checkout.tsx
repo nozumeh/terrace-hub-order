@@ -150,20 +150,35 @@ function Checkout() {
       return;
     }
     console.log("ORDER SAVED:", order.id, "to Supabase project fgqoixfbnivyctduubwz");
-    const { error: itemsErr } = await supabase.from("order_items").insert(
-      items.map((i) => ({
-        order_id: order.id, menu_item_id: i.menu_item_id, name: i.name,
-        quantity: i.quantity, unit_price: i.unit_price, subtotal: i.unit_price * i.quantity,
-        customizations: {
-          base_price: i.base_price,
-          variant: i.variant,
-          extras: i.extras,
-          removed: i.removed,
-          notes: i.notes,
-        } as unknown as never,
-      }))
-    );
-    if (itemsErr) { setBusy(false); toast.error(itemsErr.message); return; }
+    for (const item of items) {
+      const { data: orderItem, error: itemError } = await supabase
+        .from("order_items")
+        .insert({
+          order_id: order.id,
+          menu_item_id: item.menu_item_id,
+          name: item.name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          subtotal: item.unit_price * item.quantity,
+          customizations: {
+            base_price: item.base_price,
+            variant: item.variant,
+            extras: item.extras || [],
+            removed: item.removed || [],
+            notes: item.notes || null,
+          } as unknown as never,
+        })
+        .select()
+        .single();
+      if (itemError) {
+        console.error("ORDER ITEM FAILED:", JSON.stringify(itemError), { item, orderId: order.id });
+        alert("Item insert failed: " + itemError.message + "\nCode: " + itemError.code);
+        setBusy(false);
+        toast.error("Error al guardar item: " + itemError.message);
+        return;
+      }
+      console.log("Item saved:", orderItem);
+    }
     // WhatsApp redirect for non-en_caja methods
     if (paymentMethod !== "en_caja") {
       const msg = buildWhatsAppOrderMessage({
