@@ -16,8 +16,8 @@ export const Route = createFileRoute("/admin")({ component: AdminPage });
 const STATUSES = ["pending", "confirmed", "preparing", "on_the_way", "delivered"] as const;
 
 interface Order {
-  id: string; order_number: number; user_id: string; restaurant_id: string;
-  status: string; total_final: number; delivery_store: string; delivery_floor: string;
+  id: string; order_number: number; customer_id: string; restaurant_id: string;
+  status: string; total: number; delivery_store: string; delivery_floor: string;
   created_at: string;
 }
 interface Profile { id: string; name: string; email: string; store_name: string; is_employee: boolean }
@@ -63,7 +63,7 @@ function AdminPage() {
 
   const today = new Date().toISOString().slice(0, 10);
   const todayOrders = orders.filter((o) => o.created_at.startsWith(today));
-  const revenue = todayOrders.reduce((a, b) => a + Number(b.total_final), 0);
+  const revenue = todayOrders.reduce((a, b) => a + Number(b.total), 0);
   const pending = orders.filter((o) => o.status !== "delivered").length;
 
   const filtered = useMemo(() =>
@@ -215,7 +215,7 @@ function AdminPage() {
                     <td className="px-2 py-2 font-mono">#{String(o.order_number).padStart(4, "0")}</td>
                     <td className="px-2 py-2">{o.delivery_store} · P{o.delivery_floor}</td>
                     <td className="px-2 py-2 text-muted-foreground">{restaurants.find((r) => r.id === o.restaurant_id)?.name ?? "—"}</td>
-                    <td className="px-2 py-2 font-semibold text-gold">${Number(o.total_final).toFixed(2)}</td>
+                    <td className="px-2 py-2 font-semibold text-gold">${Number(o.total).toFixed(2)}</td>
                     <td className="px-2 py-2">
                       <Select value={o.status} onValueChange={(v) => updateStatus(o.id, v)}>
                         <SelectTrigger className="h-8 w-36"><SelectValue /></SelectTrigger>
