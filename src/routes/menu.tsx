@@ -398,7 +398,7 @@ function MenuPage() {
                     <p className="text-sm leading-relaxed text-muted-foreground">{it.description}</p>
                   )}
 
-                  {hasOptions && (
+                  {stage === "edit" && hasOptions && (
                     <div>
                       <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opción</div>
                       <RadioGroup value={variantChoice} onValueChange={setVariantChoice} className="gap-2">
@@ -412,7 +412,7 @@ function MenuPage() {
                     </div>
                   )}
 
-                  {(hasExtras || hasRemovables) && (
+                  {stage === "edit" && (hasExtras || hasRemovables) && (
                     <Accordion type="multiple" className="w-full">
                       {hasExtras && (
                         <AccordionItem value="extras" className="border-border">
@@ -470,12 +470,29 @@ function MenuPage() {
                     </Accordion>
                   )}
 
-                  {!hasOptions && !hasExtras && !hasRemovables && (
-                    <p className="text-xs text-muted-foreground">Este plato no tiene opciones configurables.</p>
+                  {stage === "edit" && (
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Notas para la cocina
+                      </div>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Ej: término medio, sin sal, alergia a nueces…"
+                        rows={3}
+                        maxLength={300}
+                        className="resize-none"
+                      />
+                      <div className="mt-1 text-right text-[10px] text-muted-foreground">{notes.length}/300</div>
+                    </div>
+                  )}
+
+                  {stage === "edit" && !hasOptions && !hasExtras && !hasRemovables && (
+                    <p className="text-xs text-muted-foreground">Este plato no tiene extras ni ingredientes para quitar.</p>
                   )}
                 </div>
-                <DialogFooter className="flex-row items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 sm:justify-between">
-                  <div className="flex items-center gap-2">
+                <DialogFooter className="flex-col gap-3 border-t border-border bg-card px-5 py-3 sm:flex-col sm:space-x-0">
+                  <div className="flex items-center justify-center gap-2">
                     <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -484,9 +501,41 @@ function MenuPage() {
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button onClick={confirmCustomize} className="flex-1 bg-gold text-primary-foreground hover:bg-gold/90">
-                    Agregar · ${total.toFixed(2)}
-                  </Button>
+                  {stage === "preview" ? (
+                    <div className="flex w-full gap-2">
+                      {(hasOptions || hasExtras || hasRemovables) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setStage("edit")}
+                          className="flex-1 border-gold/40 text-gold hover:bg-gold/10"
+                        >
+                          <Settings2 className="h-4 w-4" /> Editar
+                        </Button>
+                      )}
+                      <Button
+                        onClick={confirmCustomize}
+                        className="flex-1 bg-gold text-primary-foreground hover:bg-gold/90"
+                      >
+                        Agregar · ${total.toFixed(2)}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex w-full gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setStage("preview")}
+                        className="flex-1"
+                      >
+                        <ArrowLeft className="h-4 w-4" /> Atrás
+                      </Button>
+                      <Button
+                        onClick={confirmCustomize}
+                        className="flex-1 bg-gold text-primary-foreground hover:bg-gold/90"
+                      >
+                        Agregar · ${total.toFixed(2)}
+                      </Button>
+                    </div>
+                  )}
                 </DialogFooter>
               </>
             );
