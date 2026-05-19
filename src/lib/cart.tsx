@@ -16,6 +16,7 @@ export interface CartItem {
   variant: string | null;
   extras: CartExtra[];
   removed: CartRemoved[];
+  notes?: string;
   quantity: number;
 }
 
@@ -40,6 +41,7 @@ function buildCartKey(i: AddCartInput): string {
   if (i.variant) parts.push(`v:${i.variant}`);
   if (i.extras.length) parts.push("e:" + [...i.extras].map((e) => e.id).sort().join(","));
   if (i.removed.length) parts.push("r:" + [...i.removed].map((r) => r.id).sort().join(","));
+  if (i.notes && i.notes.trim()) parts.push("n:" + i.notes.trim().toLowerCase());
   return parts.join("::");
 }
 
@@ -59,6 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         variant: it.variant ?? null,
         extras: it.extras ?? [],
         removed: it.removed ?? [],
+        notes: it.notes ?? "",
         quantity: it.quantity,
       }));
     } catch { return []; }
