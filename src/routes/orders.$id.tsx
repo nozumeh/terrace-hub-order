@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Check, Clock, ChefHat, Bike, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { buildWhatsAppOrderMessage, openWhatsAppOrder, PAYMENT_LABELS, type PaymentMethod, type DeliveryType } from "@/lib/whatsapp-order";
+import { formatBsLabel, DEFAULT_BCV_RATE } from "@/lib/bcv";
 
 export const Route = createFileRoute("/orders/$id")({ component: OrderStatus });
 
@@ -28,6 +29,8 @@ interface Order {
   created_at: string;
   out_for_delivery_at: string | null;
   delivered_at: string | null;
+  bcv_rate_snapshot: number | null;
+  total_bs: number | null;
 }
 interface ItemCustomizations {
   base_price?: number;
@@ -114,6 +117,8 @@ function OrderStatus() {
       discount: Number(order.discount_applied),
       total: Number(order.total_final),
       notes: order.notes,
+      bcvRate: Number(order.bcv_rate_snapshot ?? 0) || undefined,
+      bcvDate: order.created_at.slice(0, 10),
     });
     openWhatsAppOrder(whatsappNumber, msg);
   };
@@ -219,8 +224,23 @@ function OrderStatus() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex justify-between border-t border-border pt-3 text-lg font-semibold">
-            <span>Total</span><span className="text-gold">${Number(order.total_final).toFixed(2)}</span>
+          <div className="mt-4 space-y-1 border-t border-border pt-3 text-sm">
+            <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${Number(order.total_before_discount).toFixed(2)}</span></div>
+            {Number(order.discount_applied) > 0 && (
+              <div className="flex justify-between text-success"><span>Descuento</span><span>-${Number(order.discount_applied).toFixed(2)}</span></div>
+            )}
+            <div className="flex justify-between border-t border-border pt-2 text-lg font-semibold">
+              <span>Total</span><span className="text-gold">${Number(order.total_final).toFixed(2)} USD</span>
+            </div>
+            <div className="flex justify-between text-base font-medium">
+              <span className="text-muted-foreground">Total Bs.</span>
+              <span>{formatBsLabel(Number(order.total_final), Number(order.bcv_rate_snapshot ?? DEFAULT_BCV_RATE))}</span>
+            </div>
+            {order.bcv_rate_snapshot && (
+              <div className="pt-1 text-[11px] text-muted-foreground">
+                💱 Tasa BCV: Bs. {Number(order.bcv_rate_snapshot).toFixed(2)} por $1 · 📅 {order.created_at.slice(0, 10)}
+              </div>
+            )}
           </div>
         </div>
       </div>
