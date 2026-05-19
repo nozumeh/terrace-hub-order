@@ -216,7 +216,7 @@ export function RegisterForm({ defaultTab = "employee", lockTab = false, inviteT
                 </Select>
               </div>
             </div>
-            <p className="rounded-md bg-gold/10 p-3 text-xs text-gold">Recibirás $1 de descuento automático y un código promocional personal.</p>
+            <p className="rounded-md bg-gold/10 p-3 text-xs text-gold">Recibirás 10% de descuento automático en cada pedido y un código promocional personal.</p>
           </TabsContent>
 
           <TabsContent value="restaurant_owner" className="m-0 space-y-4">

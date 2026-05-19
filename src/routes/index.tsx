@@ -136,7 +136,7 @@ function Landing() {
                 </div>
                 <h3 className="mt-3 font-heading text-2xl font-bold md:text-3xl">¿Eres empleado de City Market?</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Todos tus pedidos tienen <span className="font-semibold text-foreground">$1 de descuento automático</span>. Regístrate con el nombre de tu tienda y piso.
+                  Todos tus pedidos tienen <span className="font-semibold text-foreground">10% de descuento automático</span>. Regístrate con el nombre de tu tienda y piso.
                 </p>
               </div>
               <Button size="lg" className="bg-gold text-primary-foreground hover:bg-gold/90" asChild>

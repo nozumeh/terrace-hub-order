@@ -26,6 +26,7 @@ export interface WhatsAppOrderPayload {
   paymentMethod: PaymentMethod;
   subtotal: number;
   discount: number;
+  serviceFee?: number;
   total: number;
   notes?: string;
   bcvRate?: number;
@@ -71,7 +72,8 @@ export function buildWhatsAppOrderMessage(p: WhatsAppOrderPayload): string {
   lines.push(`MÉTODO DE PAGO: ${PAYMENT_LABELS[p.paymentMethod]}`);
   lines.push("");
   lines.push(`SUBTOTAL: $${p.subtotal.toFixed(2)}${withBs ? ` (Bs. ${fmtBs(p.subtotal, rate)})` : ""}`);
-  if (p.discount > 0) lines.push(`DESCUENTO EMPLEADO: -$${p.discount.toFixed(2)}${withBs ? ` (-Bs. ${fmtBs(p.discount, rate)})` : ""}`);
+  if (p.discount > 0) lines.push(`DESCUENTO EMPLEADO (10%): -$${p.discount.toFixed(2)}${withBs ? ` (-Bs. ${fmtBs(p.discount, rate)})` : ""}`);
+  if ((p.serviceFee ?? 0) > 0) lines.push(`TARIFA DE SERVICIO: +$${p.serviceFee!.toFixed(2)}${withBs ? ` (+Bs. ${fmtBs(p.serviceFee!, rate)})` : ""}`);
   lines.push("━━━━━━━━━━━━━━━━━━━━━");
   lines.push(`TOTAL: $${p.total.toFixed(2)} USD`);
   if (withBs) {
