@@ -17,6 +17,9 @@ import { useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
+const SERVICE_FEE = 0.5;
+const EMPLOYEE_DISCOUNT_RATE = 0.10;
+
 interface RestaurantSettings {
   name: string;
   delivery_pickup: boolean; delivery_to_store: boolean;
@@ -30,8 +33,9 @@ function Checkout() {
   const { user, profile, roles, loading } = useAuth();
   const { items, subtotal, restaurantId, clear } = useCart();
   const employee = isEmployee(profile, roles);
-  const discount = employee && items.length > 0 ? 1 : 0;
-  const total = Math.max(0, subtotal - discount);
+  const discount = employee && items.length > 0 ? subtotal * EMPLOYEE_DISCOUNT_RATE : 0;
+  const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
+  const total = Math.max(0, subtotal - discount + serviceFee);
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
@@ -139,7 +143,7 @@ function Checkout() {
         deliveryStore: showStoreFields ? store.trim() : (restoSettings?.name ?? ""),
         deliveryFloor: showStoreFields ? floor : "",
         paymentMethod,
-        subtotal, discount, total,
+        subtotal, discount, total, serviceFee,
         notes: notes.trim(),
         bcvRate, bcvDate,
       });
@@ -272,7 +276,8 @@ function Checkout() {
           </ul>
           <div className="space-y-1 border-t border-border pt-3 text-sm">
             <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-            {employee && <div className="flex justify-between text-success"><span>Descuento empleado</span><span>-${discount.toFixed(2)}</span></div>}
+            {employee && <div className="flex justify-between text-success"><span>Descuento empleado (10%)</span><span>-${discount.toFixed(2)}</span></div>}
+            <div className="flex justify-between text-muted-foreground"><span>Tarifa de servicio</span><span>+${serviceFee.toFixed(2)}</span></div>
             <div className="flex justify-between pt-2 text-lg font-semibold"><span>Total USD</span><span className="text-gold">${total.toFixed(2)}</span></div>
             <div className="flex justify-between text-sm font-medium"><span className="text-muted-foreground">Total Bs.</span><span>{formatBsLabel(total, bcvRate)}</span></div>
             <div className="pt-1 text-[11px] text-muted-foreground">💱 Tasa BCV: {bcvRate.toFixed(2)} Bs/$</div>
