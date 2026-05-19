@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ShieldPlus, ShieldMinus } from "lucide-react";
 import { toast } from "sonner";
+import { BcvRateAdmin } from "@/components/BcvRateAdmin";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -145,6 +146,8 @@ function AdminPage() {
           <div className="text-xs uppercase tracking-widest text-gold">Admin</div>
           <h1 className="font-heading text-3xl font-bold">Panel de control</h1>
         </div>
+
+        <BcvRateAdmin />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Pedidos hoy" value={todayOrders.length.toString()} />
