@@ -19,7 +19,6 @@ export const Route = createFileRoute("/checkout")({ component: Checkout });
 
 const SERVICE_FEE = 0.5;
 const EMPLOYEE_DISCOUNT_RATE = 0.10;
-const ORDER_RESTAURANT_ID = "a0000000-0000-0000-0000-000000000001";
 const roundCurrency = (value: number) => Number(value.toFixed(2));
 
 interface RestaurantSettings {
@@ -33,7 +32,7 @@ interface RestaurantSettings {
 function Checkout() {
   const navigate = useNavigate();
   const { user, profile, roles, loading } = useAuth();
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, clear, restaurantId } = useCart();
   const employee = roles.some((role) => role === "supervisor" || role === "worker");
   const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
   const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
@@ -60,17 +59,17 @@ function Checkout() {
   }, [profile]);
 
   useEffect(() => {
-    if (items.length === 0) return;
+    if (items.length === 0 || !restaurantId) return;
     (async () => {
       const { data } = await supabase.from("restaurants")
         .select("name,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info")
-        .eq("id", ORDER_RESTAURANT_ID).maybeSingle();
+        .eq("id", restaurantId).maybeSingle();
       if (data) {
         setRestoSettings(data as RestaurantSettings);
         if (!data.delivery_to_store && data.delivery_pickup) setDeliveryType("pickup");
       }
     })();
-  }, [items.length]);
+  }, [items.length, restaurantId]);
 
   const availablePayments = useMemo<PaymentMethod[]>(() => {
     if (!restoSettings) return ["pago_movil", "whatsapp", "en_caja", "efectivo"];
@@ -110,7 +109,7 @@ function Checkout() {
       bcvRateRead: testRead?.rate,
       projectMatch: supabaseURL.includes("fgqoixfbnivyctduubwz"),
     });
-    if (!user || items.length === 0) return;
+    if (!user || items.length === 0 || !restaurantId) return;
     if (!paymentMethod) { toast.error("Selecciona un método de pago"); return; }
     if (showStoreFields && !store.trim()) { toast.error("Indica el nombre de tu tienda"); return; }
     setBusy(true);
@@ -124,7 +123,7 @@ function Checkout() {
     const bcvRateSnapshot = Number(rateData?.rate ?? bcvRate ?? DEFAULT_BCV_RATE);
     const orderData = {
       customer_id: user.id,
-      restaurant_id: ORDER_RESTAURANT_ID,
+      restaurant_id: restaurantId,
       subtotal,
       discount_amount: discount,
       total,
