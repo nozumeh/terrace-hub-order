@@ -634,6 +634,36 @@ export type Database = {
         }
         Relationships: []
       }
+      runner_messages: {
+        Row: {
+          id: string
+          is_broadcast: boolean
+          message: string
+          restaurant_id: string
+          runner_id: string | null
+          sent_at: string
+          sent_by: string
+        }
+        Insert: {
+          id?: string
+          is_broadcast?: boolean
+          message: string
+          restaurant_id: string
+          runner_id?: string | null
+          sent_at?: string
+          sent_by: string
+        }
+        Update: {
+          id?: string
+          is_broadcast?: boolean
+          message?: string
+          restaurant_id?: string
+          runner_id?: string | null
+          sent_at?: string
+          sent_by?: string
+        }
+        Relationships: []
+      }
       runner_shifts: {
         Row: {
           check_in: string | null
