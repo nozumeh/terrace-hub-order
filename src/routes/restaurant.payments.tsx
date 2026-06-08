@@ -21,6 +21,7 @@ interface PaymentSettings {
   payment_whatsapp: boolean;
   payment_en_caja: boolean;
   payment_efectivo: boolean;
+  payment_punto_entrega: boolean;
   whatsapp_number: string;
   pago_movil_info: string;
 }
@@ -41,7 +42,7 @@ function PaymentsPage() {
     (async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("id,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info")
+        .select("id,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,payment_punto_entrega,whatsapp_number,pago_movil_info")
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) setResto(data as PaymentSettings);
@@ -59,6 +60,7 @@ function PaymentsPage() {
       payment_whatsapp: resto.payment_whatsapp,
       payment_en_caja: resto.payment_en_caja,
       payment_efectivo: resto.payment_efectivo,
+      payment_punto_entrega: resto.payment_punto_entrega,
       whatsapp_number: resto.whatsapp_number ?? "",
       pago_movil_info: resto.pago_movil_info ?? "",
     }).eq("id", resto.id);
@@ -140,6 +142,12 @@ function PaymentsPage() {
             subtitle="El cliente paga al recibir"
             checked={resto.payment_efectivo}
             onChange={(v) => setResto({ ...resto, payment_efectivo: v })}
+          />
+          <ToggleRow
+            title="💳 Punto en entrega"
+            subtitle="El cliente paga con tarjeta en el punto al recibir el pedido"
+            checked={resto.payment_punto_entrega}
+            onChange={(v) => setResto({ ...resto, payment_punto_entrega: v })}
           />
         </section>
 
