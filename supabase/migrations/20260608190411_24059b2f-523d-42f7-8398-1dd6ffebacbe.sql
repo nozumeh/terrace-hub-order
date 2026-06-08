@@ -1,0 +1,1 @@
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS payment_punto_entrega boolean NOT NULL DEFAULT false;
