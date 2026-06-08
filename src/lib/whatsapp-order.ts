@@ -1,4 +1,4 @@
-export type PaymentMethod = "pago_movil" | "whatsapp" | "en_caja" | "efectivo";
+export type PaymentMethod = "pago_movil" | "whatsapp" | "en_caja" | "efectivo" | "punto_entrega";
 export type DeliveryType = "to_store" | "pickup";
 
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
@@ -6,6 +6,7 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   whatsapp: "📱 Pago por WhatsApp",
   en_caja: "🏪 Pago en local (al recoger)",
   efectivo: "💵 Efectivo (al recibir)",
+  punto_entrega: "💳 Punto en entrega (tarjeta)",
 };
 
 export interface WhatsAppOrderItem {

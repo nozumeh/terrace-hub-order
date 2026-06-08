@@ -25,7 +25,7 @@ interface RestaurantSettings {
   name: string;
   delivery_pickup: boolean; delivery_to_store: boolean;
   payment_pago_movil: boolean; payment_whatsapp: boolean;
-  payment_en_caja: boolean; payment_efectivo: boolean;
+  payment_en_caja: boolean; payment_efectivo: boolean; payment_punto_entrega: boolean;
   whatsapp_number: string; pago_movil_info: string;
 }
 
@@ -62,7 +62,7 @@ function Checkout() {
     if (items.length === 0 || !restaurantId) return;
     (async () => {
       const { data } = await supabase.from("restaurants")
-        .select("name,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,whatsapp_number,pago_movil_info")
+        .select("name,delivery_pickup,delivery_to_store,payment_pago_movil,payment_whatsapp,payment_en_caja,payment_efectivo,payment_punto_entrega,whatsapp_number,pago_movil_info")
         .eq("id", restaurantId).maybeSingle();
       if (data) {
         setRestoSettings(data as RestaurantSettings);
@@ -72,14 +72,15 @@ function Checkout() {
   }, [items.length, restaurantId]);
 
   const availablePayments = useMemo<PaymentMethod[]>(() => {
-    if (!restoSettings) return ["pago_movil", "whatsapp", "en_caja", "efectivo"];
-    const any = restoSettings.payment_pago_movil || restoSettings.payment_whatsapp || restoSettings.payment_en_caja || restoSettings.payment_efectivo;
-    if (!any) return ["pago_movil", "whatsapp", "en_caja", "efectivo"];
+    if (!restoSettings) return ["pago_movil", "whatsapp", "en_caja", "efectivo", "punto_entrega"];
+    const any = restoSettings.payment_pago_movil || restoSettings.payment_whatsapp || restoSettings.payment_en_caja || restoSettings.payment_efectivo || restoSettings.payment_punto_entrega;
+    if (!any) return ["pago_movil", "whatsapp", "en_caja", "efectivo", "punto_entrega"];
     const list: PaymentMethod[] = [];
     if (restoSettings.payment_pago_movil) list.push("pago_movil");
     if (restoSettings.payment_whatsapp) list.push("whatsapp");
     if (restoSettings.payment_en_caja) list.push("en_caja");
     if (restoSettings.payment_efectivo) list.push("efectivo");
+    if (restoSettings.payment_punto_entrega) list.push("punto_entrega");
     return list;
   }, [restoSettings]);
 
@@ -184,7 +185,7 @@ function Checkout() {
       console.log("Item saved:", orderItem);
     }
     // WhatsApp redirect for non-en_caja methods
-    if (paymentMethod !== "en_caja") {
+    if (paymentMethod !== "en_caja" && paymentMethod !== "efectivo" && paymentMethod !== "punto_entrega") {
       const msg = buildWhatsAppOrderMessage({
         orderNumber: order.order_number,
         createdAt: new Date(order.created_at),
@@ -212,6 +213,7 @@ function Checkout() {
     : paymentMethod === "whatsapp" ? "Confirma tu pago por WhatsApp."
     : paymentMethod === "en_caja" ? "Pago al recoger en el local."
     : paymentMethod === "efectivo" ? "Pago en efectivo al recibir."
+    : paymentMethod === "punto_entrega" ? "Pago con tarjeta en el punto al recibir."
     : "";
 
   if (items.length === 0) {
@@ -300,7 +302,7 @@ function Checkout() {
               <div className="mt-2 text-[11px] text-muted-foreground">Tasa BCV del día: {bcvRate.toFixed(2)} Bs/$</div>
             </div>
           )}
-          {paymentMethod !== "en_caja" && (
+          {paymentMethod !== "en_caja" && paymentMethod !== "efectivo" && paymentMethod !== "punto_entrega" && (
             <p className="text-xs text-muted-foreground">Al confirmar, se abrirá WhatsApp para coordinar el pago.</p>
           )}
         </div>

@@ -588,6 +588,7 @@ export type Database = {
           payment_efectivo: boolean
           payment_en_caja: boolean
           payment_pago_movil: boolean
+          payment_punto_entrega: boolean
           payment_whatsapp: boolean
           phone: string | null
           whatsapp_number: string
@@ -608,6 +609,7 @@ export type Database = {
           payment_efectivo?: boolean
           payment_en_caja?: boolean
           payment_pago_movil?: boolean
+          payment_punto_entrega?: boolean
           payment_whatsapp?: boolean
           phone?: string | null
           whatsapp_number?: string
@@ -628,6 +630,7 @@ export type Database = {
           payment_efectivo?: boolean
           payment_en_caja?: boolean
           payment_pago_movil?: boolean
+          payment_punto_entrega?: boolean
           payment_whatsapp?: boolean
           phone?: string | null
           whatsapp_number?: string
