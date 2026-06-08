@@ -302,7 +302,7 @@ function Checkout() {
               <div className="mt-2 text-[11px] text-muted-foreground">Tasa BCV del día: {bcvRate.toFixed(2)} Bs/$</div>
             </div>
           )}
-          {paymentMethod !== "en_caja" && (
+          {paymentMethod !== "en_caja" && paymentMethod !== "efectivo" && paymentMethod !== "punto_entrega" && (
             <p className="text-xs text-muted-foreground">Al confirmar, se abrirá WhatsApp para coordinar el pago.</p>
           )}
         </div>
