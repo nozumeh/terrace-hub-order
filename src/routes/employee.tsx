@@ -75,7 +75,7 @@ function EmployeePanel() {
     setBusy(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name, phone, store_name: storeName, store_floor: floor, store_id: storeId })
+      .update({ name, phone, store_name: storeName, store_floor: floor })
       .eq("id", user.id);
     setBusy(false);
     if (error) toast.error(error.message);
