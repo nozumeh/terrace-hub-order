@@ -36,7 +36,19 @@ function Checkout() {
   const employee = roles.some((role) => role === "supervisor" || role === "worker");
   const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
   const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
-  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee));
+  const [tipChoice, setTipChoice] = useState<"none" | "5" | "10" | "15" | "custom">("none");
+  const [tipCustom, setTipCustom] = useState<string>("");
+  const tip = useMemo(() => {
+    if (items.length === 0) return 0;
+    if (tipChoice === "none") return 0;
+    if (tipChoice === "custom") {
+      const v = parseFloat(tipCustom.replace(",", "."));
+      return Number.isFinite(v) && v > 0 ? roundCurrency(v) : 0;
+    }
+    const pct = Number(tipChoice) / 100;
+    return roundCurrency(subtotal * pct);
+  }, [tipChoice, tipCustom, subtotal, items.length]);
+  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee + tip));
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
@@ -198,7 +210,7 @@ function Checkout() {
         deliveryStore: showStoreFields ? store.trim() : (restoSettings?.name ?? ""),
         deliveryFloor: showStoreFields ? floor : "",
         paymentMethod,
-        subtotal, discount, total, serviceFee,
+        subtotal, discount, total, serviceFee, tip,
         notes: notes.trim(),
         bcvRate: bcvRateSnapshot, bcvDate: rateData?.date ?? bcvDate,
       });
@@ -305,6 +317,41 @@ function Checkout() {
           {paymentMethod !== "en_caja" && paymentMethod !== "efectivo" && paymentMethod !== "punto_entrega" && (
             <p className="text-xs text-muted-foreground">Al confirmar, se abrirá WhatsApp para coordinar el pago.</p>
           )}
+          <div className="space-y-2 border-t border-border pt-4">
+            <h3 className="font-heading text-sm font-bold">Propina para el runner</h3>
+            <p className="text-xs text-muted-foreground">Opcional. Va directo al food runner que te entrega.</p>
+            <div className="grid grid-cols-4 gap-2">
+              {([
+                { v: "5" as const, l: "5%" },
+                { v: "10" as const, l: "10%" },
+                { v: "15" as const, l: "15%" },
+                { v: "custom" as const, l: "Otro" },
+              ]).map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setTipChoice(tipChoice === opt.v ? "none" : opt.v)}
+                  className={`rounded-lg border p-2 text-sm font-medium transition ${tipChoice === opt.v ? "border-gold bg-gold/10 text-gold" : "border-border hover:border-gold/50"}`}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+            {tipChoice === "custom" && (
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                inputMode="decimal"
+                placeholder="Monto en USD"
+                value={tipCustom}
+                onChange={(e) => setTipCustom(e.target.value)}
+              />
+            )}
+            {tip > 0 && (
+              <p className="text-xs text-gold">Propina: ${tip.toFixed(2)}</p>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 rounded-xl border border-border bg-card p-6">
@@ -334,6 +381,7 @@ function Checkout() {
             <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
             {employee && <div className="flex justify-between text-success"><span>Descuento empleado (10%)</span><span>-${discount.toFixed(2)}</span></div>}
             <div className="flex justify-between text-muted-foreground"><span>Tarifa de servicio</span><span>+${serviceFee.toFixed(2)}</span></div>
+            {tip > 0 && <div className="flex justify-between text-gold"><span>Propina para el runner</span><span>+${tip.toFixed(2)}</span></div>}
             <div className="flex justify-between pt-2 text-lg font-semibold"><span>Total USD</span><span className="text-gold">${total.toFixed(2)}</span></div>
             <div className="flex justify-between text-sm font-medium"><span className="text-muted-foreground">Total Bs.</span><span>{formatBsLabel(total, bcvRate)}</span></div>
             <div className="pt-1 text-[11px] text-muted-foreground">💱 Tasa BCV: {bcvRate.toFixed(2)} Bs/$</div>
