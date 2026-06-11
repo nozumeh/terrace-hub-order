@@ -210,7 +210,7 @@ function Checkout() {
         deliveryStore: showStoreFields ? store.trim() : (restoSettings?.name ?? ""),
         deliveryFloor: showStoreFields ? floor : "",
         paymentMethod,
-        subtotal, discount, total, serviceFee,
+        subtotal, discount, total, serviceFee, tip,
         notes: notes.trim(),
         bcvRate: bcvRateSnapshot, bcvDate: rateData?.date ?? bcvDate,
       });
