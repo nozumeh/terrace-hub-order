@@ -22,6 +22,7 @@ interface OrderItem { id: string; order_id: string; name: string; quantity: numb
 interface Item { id: string; name: string; price: number; is_available: boolean; category: string }
 interface Category { id: string; name: string; display_order: number }
 interface MenuItemFull { id: string; name: string; price: number; is_available: boolean; category: string; category_id: string | null; image_url: string | null }
+interface CustomerInfo { name: string; phone: string | null; store_id: string | null; customer_code: string | null }
 
 function RestaurantPanel() {
   const { user, roles, loading, isRestaurantOwner, requireRestaurantOwner } = useAuth();
@@ -30,6 +31,7 @@ function RestaurantPanel() {
   const isChildRoute = location.pathname.replace(/\/$/, "") !== "/restaurant";
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItem[]>>({});
+  const [customers, setCustomers] = useState<Record<string, CustomerInfo>>({});
   const [menu, setMenu] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuFull, setMenuFull] = useState<MenuItemFull[]>([]);
@@ -68,10 +70,21 @@ function RestaurantPanel() {
     setMenuFull((m ?? []) as MenuItemFull[]);
     setCategories((cats ?? []) as Category[]);
     if (ords.length) {
-      const { data: oi } = await supabase.from("order_items").select("*").in("order_id", ords.map((x) => x.id));
+      const customerIds = Array.from(new Set(ords.map((x) => x.customer_id).filter(Boolean)));
+      const [{ data: oi }, { data: ps }] = await Promise.all([
+        supabase.from("order_items").select("*").in("order_id", ords.map((x) => x.id)),
+        customerIds.length
+          ? supabase.from("profiles").select("id,name,phone,store_id,customer_code").in("id", customerIds)
+          : Promise.resolve({ data: [] as { id: string; name: string; phone: string | null; store_id: string | null; customer_code: string | null }[] }),
+      ]);
       const grouped: Record<string, OrderItem[]> = {};
       ((oi ?? []) as OrderItem[]).forEach((it) => { (grouped[it.order_id] ??= []).push(it); });
       setOrderItems(grouped);
+      const cm: Record<string, CustomerInfo> = {};
+      ((ps ?? []) as { id: string; name: string; phone: string | null; store_id: string | null; customer_code: string | null }[]).forEach((p) => {
+        cm[p.id] = { name: p.name, phone: p.phone, store_id: p.store_id, customer_code: p.customer_code };
+      });
+      setCustomers(cm);
     }
     setBusy(false);
   };
@@ -219,6 +232,26 @@ function RestaurantPanel() {
                     <div className={`text-xs ${urgent ? "text-destructive" : "text-muted-foreground"}`}>{Math.floor(ageMin)} min</div>
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">Tienda: <span className="text-foreground">{o.delivery_store}</span> · Piso {o.delivery_floor}</div>
+                  {customers[o.customer_id] && (
+                    <div className="mt-2 rounded-md border border-border bg-background/50 p-2 text-xs">
+                      <div className="font-semibold text-foreground">
+                        👤 {customers[o.customer_id].name || "Cliente"}
+                        {(customers[o.customer_id].store_id || customers[o.customer_id].customer_code) && (
+                          <span className="ml-2 font-mono text-gold">
+                            #{customers[o.customer_id].store_id || customers[o.customer_id].customer_code}
+                          </span>
+                        )}
+                      </div>
+                      {customers[o.customer_id].phone && (
+                        <a
+                          href={`tel:${customers[o.customer_id].phone}`}
+                          className="mt-0.5 inline-block text-muted-foreground hover:text-gold"
+                        >
+                          📞 {customers[o.customer_id].phone}
+                        </a>
+                      )}
+                    </div>
+                  )}
                   <ul className="mt-3 space-y-1 text-sm">
                     {(orderItems[o.id] ?? []).map((it) => (
                       <li key={it.id}>{it.quantity}× {it.name}</li>
