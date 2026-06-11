@@ -140,12 +140,28 @@ function EmployeePanel() {
           </nav>
         </div>
 
-        {/* Mobile: show current tab label as a small heading */}
-        <div className="md:hidden">
-          <div className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold">
-            {tabs.find((t) => t.id === tab)?.label}
-            <span className="ml-2 text-xs font-normal text-muted-foreground">(Cambia desde el menú ☰)</span>
-          </div>
+        {/* Mobile: scrollable tab bar */}
+        <div className="md:hidden -mx-4 px-4">
+          <nav className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {tabs.map((t) => {
+              const active = tab === t.id;
+              return (
+                <Link
+                  key={t.id}
+                  to="/employee"
+                  search={{ tab: t.id }}
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? "border-gold bg-gold text-primary-foreground"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <t.icon className="h-4 w-4" />
+                  {t.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
         {tab !== "config" && (
