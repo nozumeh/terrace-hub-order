@@ -164,7 +164,11 @@ function EmployeePanel() {
           </nav>
         </div>
 
-        {tab !== "config" && (
+        {tab === "historial" && (
+          <OrderCTA />
+        )}
+
+        {tab === "historial" && (
           <section className="rounded-xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
               <Package className="h-4 w-4 text-gold" /> Mis pedidos
@@ -193,7 +197,7 @@ function EmployeePanel() {
           </section>
         )}
 
-        {tab !== "config" && (
+        {tab === "codigo" && (
           <section className="rounded-xl border border-gold/40 bg-card p-6">
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gold">
               <BadgePercent className="h-4 w-4" /> Tu código promocional
@@ -266,6 +270,46 @@ function EmployeePanel() {
 }
 
 function EmployeePerksCTA() {
+  return <EmployeePerksCTAInner />;
+}
+
+function OrderCTA() {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-gold/40 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent p-5">
+      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gold/10 blur-2xl" />
+      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-gold/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-gold">
+            <Sparkles className="h-3 w-3" /> 10% de descuento
+          </div>
+          <h3 className="font-heading text-lg font-bold leading-tight">
+            ¿Listo para tu próximo pedido?
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Como trabajador obtienes 10% de descuento automático en cualquier restaurante.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/restaurants">
+            <Button className="bg-gold text-primary-foreground hover:bg-gold/90">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Hacer un pedido
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+          <Link to="/menu">
+            <Button variant="outline">
+              <UtensilsCrossed className="mr-2 h-4 w-4" />
+              Ver menú
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmployeePerksCTAInner() {
   return (
     <div className="space-y-4">
       <div className="relative overflow-hidden rounded-xl border border-gold/40 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent p-5">
