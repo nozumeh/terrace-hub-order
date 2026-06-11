@@ -238,7 +238,8 @@ function EmployeePanel() {
               </div>
               <div className="space-y-2">
                 <Label>#ID de Carnet</Label>
-                <Input value={storeId} onChange={(e) => setStoreId(e.target.value)} maxLength={40} placeholder="Ingresa el número de tu carnet" />
+                <Input value={storeId} readOnly disabled />
+                <p className="text-xs text-muted-foreground">El número de carnet no se puede modificar una vez registrado.</p>
               </div>
               <div className="space-y-2">
                 <Label>Tienda</Label>
