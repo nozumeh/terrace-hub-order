@@ -154,9 +154,7 @@ function EmployeePanel() {
               <Package className="h-4 w-4 text-gold" /> Mis pedidos
             </div>
             {orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Aún no tienes pedidos. <Link to="/menu" className="text-gold hover:underline">Ver menú →</Link>
-              </p>
+              <EmployeePerksCTA />
             ) : (
               <ul className="divide-y divide-border">
                 {orders.map((o) => (
@@ -245,6 +243,62 @@ function EmployeePanel() {
             </Button>
           </section>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EmployeePerksCTA() {
+  return (
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-xl border border-gold/40 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent p-5">
+        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gold/10 blur-2xl" />
+        <div className="relative">
+          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-gold/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-gold">
+            <Sparkles className="h-3 w-3" /> Beneficio exclusivo
+          </div>
+          <h3 className="font-heading text-xl font-bold leading-tight">
+            Ahorra <span className="text-gold">10%</span> en cualquier compra
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Como trabajador de City Market obtienes 10% de descuento automático al pedir en cualquiera de nuestros restaurantes.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to="/restaurants">
+              <Button className="bg-gold text-primary-foreground hover:bg-gold/90">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Hacer un pedido
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/menu">
+              <Button variant="outline">
+                <UtensilsCrossed className="mr-2 h-4 w-4" />
+                Ver el menú
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-background/40 p-4">
+        <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          ¿Cómo funciona?
+        </div>
+        <ol className="space-y-2 text-sm">
+          <li className="flex gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-xs font-bold text-gold">1</span>
+            <span><span className="font-medium text-foreground">Elige tu restaurante</span> entre las opciones disponibles en City Market.</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-xs font-bold text-gold">2</span>
+            <span><span className="font-medium text-foreground">Arma tu pedido</span> desde el menú interactivo y agrégalo al carrito.</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-xs font-bold text-gold">3</span>
+            <span><span className="font-medium text-foreground">El 10% de descuento</span> se aplica automáticamente al confirmar tu compra con tu cuenta de trabajador.</span>
+          </li>
+        </ol>
       </div>
     </div>
   );
