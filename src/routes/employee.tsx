@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BadgePercent, Copy, Loader2, Package, Settings, Share2 } from "lucide-react";
+import { BadgePercent, Copy, Loader2, Package, Settings, Share2, ShoppingBag, Sparkles, ArrowRight, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 type Tab = "historial" | "codigo" | "config";
