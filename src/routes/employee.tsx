@@ -164,7 +164,11 @@ function EmployeePanel() {
           </nav>
         </div>
 
-        {tab !== "config" && (
+        {tab === "historial" && (
+          <OrderCTA />
+        )}
+
+        {tab === "historial" && (
           <section className="rounded-xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
               <Package className="h-4 w-4 text-gold" /> Mis pedidos
@@ -193,7 +197,7 @@ function EmployeePanel() {
           </section>
         )}
 
-        {tab !== "config" && (
+        {tab === "codigo" && (
           <section className="rounded-xl border border-gold/40 bg-card p-6">
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gold">
               <BadgePercent className="h-4 w-4" /> Tu código promocional
