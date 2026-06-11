@@ -28,6 +28,7 @@ export interface WhatsAppOrderPayload {
   subtotal: number;
   discount: number;
   serviceFee?: number;
+  tip?: number;
   total: number;
   notes?: string;
   bcvRate?: number;
