@@ -36,7 +36,19 @@ function Checkout() {
   const employee = roles.some((role) => role === "supervisor" || role === "worker");
   const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
   const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
-  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee));
+  const [tipChoice, setTipChoice] = useState<"none" | "5" | "10" | "15" | "custom">("none");
+  const [tipCustom, setTipCustom] = useState<string>("");
+  const tip = useMemo(() => {
+    if (items.length === 0) return 0;
+    if (tipChoice === "none") return 0;
+    if (tipChoice === "custom") {
+      const v = parseFloat(tipCustom.replace(",", "."));
+      return Number.isFinite(v) && v > 0 ? roundCurrency(v) : 0;
+    }
+    const pct = Number(tipChoice) / 100;
+    return roundCurrency(subtotal * pct);
+  }, [tipChoice, tipCustom, subtotal, items.length]);
+  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee + tip));
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
