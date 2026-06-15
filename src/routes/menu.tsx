@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { RatingBadge } from "@/components/RatingBadge";
 
 type MenuSearch = { r?: string };
 export const Route = createFileRoute("/menu")({
@@ -67,6 +68,8 @@ function MenuPage() {
   const [stage, setStage] = useState<"preview" | "edit">("preview");
   const [paramIssue, setParamIssue] = useState<null | { reason: "missing" | "inactive"; fallbackName: string | null }>(null);
   const [navMs, setNavMs] = useState<number | null>(null);
+  const [itemRatings, setItemRatings] = useState<Record<string, { avg: number; count: number }>>({});
+  const [restoRatings, setRestoRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
   const fetchAll = async () => {
     const [{ data: r }, { data: c }, { data: m }] = await Promise.all([
@@ -107,6 +110,24 @@ function MenuPage() {
 
   useEffect(() => {
     fetchAll();
+    // Load aggregated ratings (public via summary views)
+    const loadRatings = async () => {
+      const [{ data: items }, { data: rests }] = await Promise.all([
+        supabase.from("menu_item_ratings_summary").select("menu_item_id, avg_stars, rating_count"),
+        supabase.from("restaurant_ratings_summary").select("restaurant_id, avg_stars, rating_count"),
+      ]);
+      const mi: Record<string, { avg: number; count: number }> = {};
+      for (const r of (items ?? []) as { menu_item_id: string; avg_stars: number; rating_count: number }[]) {
+        if (r.menu_item_id) mi[r.menu_item_id] = { avg: Number(r.avg_stars), count: r.rating_count };
+      }
+      const rr: Record<string, { avg: number; count: number }> = {};
+      for (const r of (rests ?? []) as { restaurant_id: string; avg_stars: number; rating_count: number }[]) {
+        if (r.restaurant_id) rr[r.restaurant_id] = { avg: Number(r.avg_stars), count: r.rating_count };
+      }
+      setItemRatings(mi);
+      setRestoRatings(rr);
+    };
+    loadRatings();
     let t: ReturnType<typeof setTimeout> | null = null;
     const debouncedRefetch = () => {
       if (t) clearTimeout(t);
