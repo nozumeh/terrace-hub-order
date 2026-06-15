@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 
 interface RateRow { id: string; rate: number; date: string; notes: string | null; created_by: string | null; created_at: string }
 
-export function BcvRateAdmin() {
+export function BcvRateAdmin({ readOnly = false }: { readOnly?: boolean }) {
   const { rate, date, refresh } = useBcvRate();
   const { user } = useAuth();
   const [history, setHistory] = useState<RateRow[]>([]);
