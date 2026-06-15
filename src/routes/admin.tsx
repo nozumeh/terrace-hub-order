@@ -147,7 +147,7 @@ function AdminPage() {
           <h1 className="font-heading text-3xl font-bold">Panel de control</h1>
         </div>
 
-        <BcvRateAdmin />
+        <BcvRateAdmin readOnly />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Pedidos hoy" value={todayOrders.length.toString()} />
