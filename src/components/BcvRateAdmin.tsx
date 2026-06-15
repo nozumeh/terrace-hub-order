@@ -76,9 +76,11 @@ export function BcvRateAdmin({ readOnly = false }: { readOnly?: boolean }) {
             <div className="mt-2 font-heading text-3xl font-bold">$1 USD = Bs. {rate.toFixed(2)}</div>
             <div className="mt-1 text-xs text-muted-foreground">Actualizado: {date}</div>
           </div>
-          <Button onClick={openEdit} className="bg-gold text-primary-foreground hover:bg-gold/90">
-            <Pencil className="h-4 w-4" /> Actualizar tasa
-          </Button>
+          {!readOnly && (
+            <Button onClick={openEdit} className="bg-gold text-primary-foreground hover:bg-gold/90">
+              <Pencil className="h-4 w-4" /> Actualizar tasa
+            </Button>
+          )}
         </div>
       </section>
 
