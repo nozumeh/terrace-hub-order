@@ -75,7 +75,6 @@ export function buildWhatsAppOrderMessage(p: WhatsAppOrderPayload): string {
   lines.push("");
   lines.push(`SUBTOTAL: $${p.subtotal.toFixed(2)}${withBs ? ` (Bs. ${fmtBs(p.subtotal, rate)})` : ""}`);
   if (p.discount > 0) lines.push(`DESCUENTO EMPLEADO (10%): -$${p.discount.toFixed(2)}${withBs ? ` (-Bs. ${fmtBs(p.discount, rate)})` : ""}`);
-  if ((p.serviceFee ?? 0) > 0) lines.push(`TARIFA DE SERVICIO: +$${p.serviceFee!.toFixed(2)}${withBs ? ` (+Bs. ${fmtBs(p.serviceFee!, rate)})` : ""}`);
   if ((p.tip ?? 0) > 0) lines.push(`PROPINA RUNNER: +$${p.tip!.toFixed(2)}${withBs ? ` (+Bs. ${fmtBs(p.tip!, rate)})` : ""}`);
   lines.push("━━━━━━━━━━━━━━━━━━━━━");
   lines.push(`TOTAL: $${p.total.toFixed(2)} USD`);

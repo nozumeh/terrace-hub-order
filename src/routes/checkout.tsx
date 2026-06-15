@@ -17,7 +17,6 @@ import { DEFAULT_BCV_RATE, useBcvRate, formatBsLabel } from "@/lib/bcv";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
-const SERVICE_FEE = 0.5;
 const EMPLOYEE_DISCOUNT_RATE = 0.10;
 const roundCurrency = (value: number) => Number(value.toFixed(2));
 
@@ -35,7 +34,6 @@ function Checkout() {
   const { items, subtotal, clear, restaurantId } = useCart();
   const employee = roles.some((role) => role === "supervisor" || role === "worker");
   const discount = employee && items.length > 0 ? roundCurrency(subtotal * EMPLOYEE_DISCOUNT_RATE) : 0;
-  const serviceFee = items.length > 0 ? SERVICE_FEE : 0;
   const [tipChoice, setTipChoice] = useState<"none" | "5" | "10" | "15" | "custom">("none");
   const [tipCustom, setTipCustom] = useState<string>("");
   const tip = useMemo(() => {
@@ -48,7 +46,7 @@ function Checkout() {
     const pct = Number(tipChoice) / 100;
     return roundCurrency(subtotal * pct);
   }, [tipChoice, tipCustom, subtotal, items.length]);
-  const total = roundCurrency(Math.max(0, subtotal - discount + serviceFee + tip));
+  const total = roundCurrency(Math.max(0, subtotal - discount + tip));
   const { rate: bcvRate, date: bcvDate } = useBcvRate();
 
   const [store, setStore] = useState("");
@@ -210,7 +208,7 @@ function Checkout() {
         deliveryStore: showStoreFields ? store.trim() : (restoSettings?.name ?? ""),
         deliveryFloor: showStoreFields ? floor : "",
         paymentMethod,
-        subtotal, discount, total, serviceFee, tip,
+        subtotal, discount, total, tip,
         notes: notes.trim(),
         bcvRate: bcvRateSnapshot, bcvDate: rateData?.date ?? bcvDate,
       });
@@ -380,7 +378,6 @@ function Checkout() {
           <div className="space-y-1 border-t border-border pt-3 text-sm">
             <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
             {employee && <div className="flex justify-between text-success"><span>Descuento empleado (10%)</span><span>-${discount.toFixed(2)}</span></div>}
-            <div className="flex justify-between text-muted-foreground"><span>Tarifa de servicio</span><span>+${serviceFee.toFixed(2)}</span></div>
             {tip > 0 && <div className="flex justify-between text-gold"><span>Propina para el runner</span><span>+${tip.toFixed(2)}</span></div>}
             <div className="flex justify-between pt-2 text-lg font-semibold"><span>Total USD</span><span className="text-gold">${total.toFixed(2)}</span></div>
             <div className="flex justify-between text-sm font-medium"><span className="text-muted-foreground">Total Bs.</span><span>{formatBsLabel(total, bcvRate)}</span></div>
