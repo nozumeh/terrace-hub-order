@@ -875,6 +875,7 @@ export type Database = {
         | "customer"
         | "manager"
         | "food_runner"
+        | "developer"
       order_status:
         | "pending"
         | "confirmed"
@@ -1016,6 +1017,7 @@ export const Constants = {
         "customer",
         "manager",
         "food_runner",
+        "developer",
       ],
       order_status: [
         "pending",
