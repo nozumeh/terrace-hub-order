@@ -115,37 +115,39 @@ export function BcvRateAdmin({ readOnly = false }: { readOnly?: boolean }) {
         </div>
       </section>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Actualizar Tasa BCV</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Fecha</Label>
-              <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+      {!readOnly && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Actualizar Tasa BCV</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Fecha</Label>
+                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Tasa Bs.</Label>
+                <Input type="number" step="0.01" min="0" placeholder="517.96" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
+                <p className="text-xs text-muted-foreground">Consulta la tasa oficial en bcv.org.ve</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Notas (opcional)</Label>
+                <Textarea rows={2} placeholder="Ej: Tasa oficial BCV 19/05/2026" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3 text-sm">
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Vista previa</div>
+                <div>$1.00 USD = {formatBsLabel(1, previewRate)}</div>
+                <div>$10.00 USD = {formatBsLabel(10, previewRate)}</div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Tasa Bs.</Label>
-              <Input type="number" step="0.01" min="0" placeholder="517.96" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
-              <p className="text-xs text-muted-foreground">Consulta la tasa oficial en bcv.org.ve</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Notas (opcional)</Label>
-              <Textarea rows={2} placeholder="Ej: Tasa oficial BCV 19/05/2026" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
-            <div className="rounded-lg border border-border bg-background p-3 text-sm">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Vista previa</div>
-              <div>$1.00 USD = {formatBsLabel(1, previewRate)}</div>
-              <div>$10.00 USD = {formatBsLabel(10, previewRate)}</div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={save} disabled={saving} className="bg-gold text-primary-foreground hover:bg-gold/90">
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />} Guardar tasa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button onClick={save} disabled={saving} className="bg-gold text-primary-foreground hover:bg-gold/90">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />} Guardar tasa
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
