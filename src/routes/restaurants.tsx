@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, UtensilsCrossed, Loader2, Clock, Check } from "lucide-react";
 import capitalBurgersLogo from "@/assets/capital-burgers-logo.jpeg";
+import { RatingBadge } from "@/components/RatingBadge";
 
 type RestaurantsSearch = { selected?: string };
 
@@ -30,6 +31,7 @@ function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
   // Auto-hide the loader quickly so it never feels blocking
   useEffect(() => {
@@ -52,6 +54,16 @@ function RestaurantsPage() {
         );
         setRestaurants(filtered);
         setLoading(false);
+      });
+    supabase
+      .from("restaurant_ratings_summary")
+      .select("restaurant_id, avg_stars, rating_count")
+      .then(({ data }) => {
+        const m: Record<string, { avg: number; count: number }> = {};
+        for (const r of (data ?? []) as { restaurant_id: string; avg_stars: number; rating_count: number }[]) {
+          if (r.restaurant_id) m[r.restaurant_id] = { avg: Number(r.avg_stars), count: r.rating_count };
+        }
+        setRatings(m);
       });
   }, []);
 
@@ -183,6 +195,13 @@ function RestaurantsPage() {
                     )}
                   </div>
                   <p className="mt-4 line-clamp-3 text-sm text-muted-foreground">{r.description}</p>
+                  <div className="mt-2">
+                    <RatingBadge
+                      avg={ratings[r.id]?.avg ?? null}
+                      count={ratings[r.id]?.count ?? 0}
+                      size="md"
+                    />
+                  </div>
                   <div className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-gold">
                     {isSelected ? "Continuar al menú" : "Ver menú"}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
