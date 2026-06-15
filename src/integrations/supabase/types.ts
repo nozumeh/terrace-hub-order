@@ -523,6 +523,53 @@ export type Database = {
           },
         ]
       }
+      platform_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          notes: string | null
+          paid_at: string | null
+          period: string | null
+          restaurant_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind: string
+          notes?: string | null
+          paid_at?: string | null
+          period?: string | null
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          paid_at?: string | null
+          period?: string | null
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_payments_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_type: string
@@ -875,6 +922,7 @@ export type Database = {
         | "customer"
         | "manager"
         | "food_runner"
+        | "developer"
       order_status:
         | "pending"
         | "confirmed"
@@ -1016,6 +1064,7 @@ export const Constants = {
         "customer",
         "manager",
         "food_runner",
+        "developer",
       ],
       order_status: [
         "pending",

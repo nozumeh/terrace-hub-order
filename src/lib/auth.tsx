@@ -9,6 +9,7 @@ export type Role =
   | "manager"
   | "restaurant_owner"
   | "food_runner"
+  | "developer"
   | "admin";
 
 export interface Profile {

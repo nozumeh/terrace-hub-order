@@ -39,6 +39,7 @@ function LoginPage() {
     const r = (roles ?? []).map((x: { role: string }) => x.role);
     if (redirect) navigate({ to: redirect });
     else if (r.includes("admin")) navigate({ to: "/admin" });
+    else if (r.includes("developer")) navigate({ to: "/developer" });
     else if (r.includes("restaurant_owner")) navigate({ to: "/restaurant" });
     else if (r.includes("supervisor") || r.includes("manager") || r.includes("worker")) navigate({ to: "/employee" });
     else navigate({ to: "/account" });
