@@ -41,7 +41,7 @@ interface ItemCustomizations {
   removed?: { id: string; name: string }[];
   notes?: string;
 }
-interface Item { id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
+interface Item { id: string; menu_item_id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
 
 function OrderStatus() {
   const { id } = Route.useParams();
@@ -166,10 +166,8 @@ function OrderStatus() {
     ? "text-destructive"
     : "text-foreground";
 
-  // Build list of ratable items (one entry per unique menu_item_id) — fetch menu_item_id via order_items
-  const ratableItems = items
-    .map((i) => ({ menu_item_id: (i as unknown as { menu_item_id?: string | null }).menu_item_id ?? null, name: i.name }))
-    .filter((x) => x.menu_item_id);
+  // Build list of ratable items (one entry per unique menu_item_id)
+  const ratableItems = items.map((i) => ({ menu_item_id: i.menu_item_id, name: i.name }));
 
   return (
     <div className="min-h-screen bg-background">
