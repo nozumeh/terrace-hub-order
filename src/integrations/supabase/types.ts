@@ -618,6 +618,61 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string | null
+          order_id: string
+          restaurant_id: string
+          stars: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string | null
+          order_id: string
+          restaurant_id: string
+          stars: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string | null
+          order_id?: string
+          restaurant_id?: string
+          stars?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurants: {
         Row: {
           address: string | null
@@ -840,7 +895,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      menu_item_ratings_summary: {
+        Row: {
+          avg_stars: number | null
+          menu_item_id: string | null
+          rating_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_ratings_summary: {
+        Row: {
+          avg_stars: number | null
+          rating_count: number | null
+          restaurant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_employee_invite: { Args: { _token: string }; Returns: Json }
