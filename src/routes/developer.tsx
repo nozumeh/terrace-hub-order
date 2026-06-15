@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { BcvRateAdmin } from "@/components/BcvRateAdmin";
+import { BcvRateScheduler } from "@/components/BcvRateScheduler";
+import { useBcvRate } from "@/lib/bcv";
 
 export const Route = createFileRoute("/developer")({ component: DeveloperPage });
 
@@ -40,6 +42,7 @@ function formatPeriodLabel(p: string): string {
 function DeveloperPage() {
   const { roles, loading } = useAuth();
   const navigate = useNavigate();
+  const { refresh: refreshBcv } = useBcvRate();
   const [busy, setBusy] = useState(true);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -62,6 +65,38 @@ function DeveloperPage() {
   };
 
   useEffect(() => { if (roles.includes("developer")) refresh(); }, [roles]);
+
+  // Auto-apply scheduled BCV rate when its date arrives.
+  useEffect(() => {
+    if (!roles.includes("developer")) return;
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("bcv_rates")
+        .select("id,scheduled_rate,scheduled_for")
+        .not("scheduled_rate", "is", null)
+        .lte("scheduled_for", today);
+      const rows = (data ?? []) as Array<{ id: string; scheduled_rate: number | null; scheduled_for: string | null }>;
+      for (const r of rows) {
+        if (r.scheduled_rate == null) continue;
+        const newRate = Number(r.scheduled_rate);
+        const { error } = await supabase
+          .from("bcv_rates")
+          .upsert(
+            { date: today, rate: newRate, notes: "Aplicada automáticamente desde programación" },
+            { onConflict: "date" },
+          );
+        if (!error) {
+          await supabase
+            .from("bcv_rates")
+            .update({ scheduled_rate: null, scheduled_for: null })
+            .eq("id", r.id);
+          toast.success(`Tasa BCV actualizada automáticamente a Bs. ${newRate.toFixed(2)}`);
+          await refreshBcv();
+        }
+      }
+    })();
+  }, [roles, refreshBcv]);
 
   const period = currentPeriod();
 
@@ -282,6 +317,7 @@ function DeveloperPage() {
           {/* TASA BCV */}
           <TabsContent value="bcv" className="mt-6 space-y-4">
             <BcvRateAdmin />
+            <BcvRateScheduler />
           </TabsContent>
 
           {/* RESUMEN */}
