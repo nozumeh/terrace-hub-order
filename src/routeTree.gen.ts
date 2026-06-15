@@ -28,6 +28,7 @@ import { Route as RestaurantKitchenRouteImport } from './routes/restaurant.kitch
 import { Route as RestaurantInventoryRouteImport } from './routes/restaurant.inventory'
 import { Route as RestaurantEmployeesRouteImport } from './routes/restaurant.employees'
 import { Route as RestaurantDashboardRouteImport } from './routes/restaurant.dashboard'
+import { Route as RestaurantCommissionRouteImport } from './routes/restaurant.commission'
 import { Route as RegisterRestauranteRouteImport } from './routes/register.restaurante'
 import { Route as RegisterEmpleadoRouteImport } from './routes/register.empleado'
 import { Route as RegisterClienteRouteImport } from './routes/register.cliente'
@@ -135,6 +136,11 @@ const RestaurantDashboardRoute = RestaurantDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => RestaurantRoute,
 } as any)
+const RestaurantCommissionRoute = RestaurantCommissionRouteImport.update({
+  id: '/commission',
+  path: '/commission',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 const RegisterRestauranteRoute = RegisterRestauranteRouteImport.update({
   id: '/restaurante',
   path: '/restaurante',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
   '/register/restaurante': typeof RegisterRestauranteRoute
+  '/restaurant/commission': typeof RestaurantCommissionRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
   '/register/restaurante': typeof RegisterRestauranteRoute
+  '/restaurant/commission': typeof RestaurantCommissionRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/register/cliente': typeof RegisterClienteRoute
   '/register/empleado': typeof RegisterEmpleadoRoute
   '/register/restaurante': typeof RegisterRestauranteRoute
+  '/restaurant/commission': typeof RestaurantCommissionRoute
   '/restaurant/dashboard': typeof RestaurantDashboardRoute
   '/restaurant/employees': typeof RestaurantEmployeesRoute
   '/restaurant/inventory': typeof RestaurantInventoryRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/register/cliente'
     | '/register/empleado'
     | '/register/restaurante'
+    | '/restaurant/commission'
     | '/restaurant/dashboard'
     | '/restaurant/employees'
     | '/restaurant/inventory'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/register/cliente'
     | '/register/empleado'
     | '/register/restaurante'
+    | '/restaurant/commission'
     | '/restaurant/dashboard'
     | '/restaurant/employees'
     | '/restaurant/inventory'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/register/cliente'
     | '/register/empleado'
     | '/register/restaurante'
+    | '/restaurant/commission'
     | '/restaurant/dashboard'
     | '/restaurant/employees'
     | '/restaurant/inventory'
@@ -548,6 +560,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantDashboardRouteImport
       parentRoute: typeof RestaurantRoute
     }
+    '/restaurant/commission': {
+      id: '/restaurant/commission'
+      path: '/commission'
+      fullPath: '/restaurant/commission'
+      preLoaderRoute: typeof RestaurantCommissionRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
     '/register/restaurante': {
       id: '/register/restaurante'
       path: '/restaurante'
@@ -645,6 +664,7 @@ const RegisterRouteWithChildren = RegisterRoute._addFileChildren(
 )
 
 interface RestaurantRouteChildren {
+  RestaurantCommissionRoute: typeof RestaurantCommissionRoute
   RestaurantDashboardRoute: typeof RestaurantDashboardRoute
   RestaurantEmployeesRoute: typeof RestaurantEmployeesRoute
   RestaurantInventoryRoute: typeof RestaurantInventoryRoute
@@ -655,6 +675,7 @@ interface RestaurantRouteChildren {
 }
 
 const RestaurantRouteChildren: RestaurantRouteChildren = {
+  RestaurantCommissionRoute: RestaurantCommissionRoute,
   RestaurantDashboardRoute: RestaurantDashboardRoute,
   RestaurantEmployeesRoute: RestaurantEmployeesRoute,
   RestaurantInventoryRoute: RestaurantInventoryRoute,
