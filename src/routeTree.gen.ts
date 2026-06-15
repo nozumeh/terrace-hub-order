@@ -20,7 +20,6 @@ import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantRunnersRouteImport } from './routes/restaurant.runners'
@@ -96,6 +95,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
