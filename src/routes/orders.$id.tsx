@@ -3,10 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Check, Clock, ChefHat, Bike, PackageCheck } from "lucide-react";
+import { Loader2, Check, Clock, ChefHat, Bike, PackageCheck, Star } from "lucide-react";
 import { toast } from "sonner";
 import { buildWhatsAppOrderMessage, openWhatsAppOrder, PAYMENT_LABELS, type PaymentMethod, type DeliveryType } from "@/lib/whatsapp-order";
 import { formatBsLabel, DEFAULT_BCV_RATE } from "@/lib/bcv";
+import { RatingDialog } from "@/components/RatingDialog";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/orders/$id")({ component: OrderStatus });
 
@@ -39,10 +41,11 @@ interface ItemCustomizations {
   removed?: { id: string; name: string }[];
   notes?: string;
 }
-interface Item { id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
+interface Item { id: string; menu_item_id: string; name: string; quantity: number; subtotal: number; customizations?: ItemCustomizations | null }
 
 function OrderStatus() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [restaurantName, setRestaurantName] = useState("");
@@ -50,6 +53,8 @@ function OrderStatus() {
   const [loading, setLoading] = useState(true);
   const [avgFloorSeconds, setAvgFloorSeconds] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [alreadyRated, setAlreadyRated] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -84,6 +89,25 @@ function OrderStatus() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [id]);
+
+  // Check if user already rated this order
+  useEffect(() => {
+    if (!user || !order) return;
+    supabase
+      .from("ratings")
+      .select("id")
+      .eq("order_id", order.id)
+      .eq("user_id", user.id)
+      .limit(1)
+      .then(({ data }) => setAlreadyRated((data ?? []).length > 0));
+  }, [user, order?.id]);
+
+  // Auto-open the rating modal when the order is delivered and not yet rated
+  useEffect(() => {
+    if (order?.status === "delivered" && user && !alreadyRated) {
+      setRatingOpen(true);
+    }
+  }, [order?.status, user, alreadyRated]);
 
   // Tick every 15s only while in transit
   useEffect(() => {
@@ -141,6 +165,9 @@ function OrderStatus() {
   const etaTone = order.status === "on_the_way" && remainingSec !== null && remainingSec < 0
     ? "text-destructive"
     : "text-foreground";
+
+  // Build list of ratable items (one entry per unique menu_item_id)
+  const ratableItems = items.map((i) => ({ menu_item_id: i.menu_item_id, name: i.name }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,7 +270,42 @@ function OrderStatus() {
             )}
           </div>
         </div>
+
+        {order.status === "delivered" && user && (
+          <div className="mt-6 rounded-xl border border-gold/40 bg-gold/5 p-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Star className="h-4 w-4 fill-gold text-gold" />
+              {alreadyRated ? (
+                <span className="text-muted-foreground">Gracias por calificar este pedido.</span>
+              ) : (
+                <span>¿Cómo estuvo tu pedido? Comparte tu opinión.</span>
+              )}
+            </div>
+            {!alreadyRated && (
+              <Button
+                size="sm"
+                onClick={() => setRatingOpen(true)}
+                className="bg-gold text-primary-foreground hover:bg-gold/90"
+              >
+                Calificar pedido
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+
+      {user && (
+        <RatingDialog
+          open={ratingOpen}
+          onOpenChange={setRatingOpen}
+          orderId={order.id}
+          userId={user.id}
+          restaurantId={order.restaurant_id}
+          restaurantName={restaurantName}
+          items={ratableItems}
+          onSubmitted={() => setAlreadyRated(true)}
+        />
+      )}
     </div>
   );
 }
