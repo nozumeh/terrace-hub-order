@@ -305,6 +305,13 @@ function MenuPage() {
             <div>
               <h1 className="font-heading text-2xl font-bold md:text-3xl">{activeRestoObj.name}</h1>
               <p className="mt-1 text-sm text-muted-foreground">{activeRestoObj.description}</p>
+              <div className="mt-1">
+                <RatingBadge
+                  avg={restoRatings[activeRestoObj.id]?.avg ?? null}
+                  count={restoRatings[activeRestoObj.id]?.count ?? 0}
+                  size="md"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -369,6 +376,11 @@ function MenuPage() {
                       ) : (
                         <div className="text-base sm:text-lg font-bold text-gold">${price.toFixed(2)}</div>
                       )}
+                      <RatingBadge
+                        avg={itemRatings[i.id]?.avg ?? null}
+                        count={itemRatings[i.id]?.count ?? 0}
+                        className="mt-0.5"
+                      />
                       </div>
                       <Button size="sm" onClick={() => handleAdd(i)} disabled={unavailable} className="h-8 shrink-0 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm bg-gold text-primary-foreground hover:bg-gold/90">
                         <Plus className="h-3 w-3" /> Agregar
