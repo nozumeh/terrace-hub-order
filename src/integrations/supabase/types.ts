@@ -22,6 +22,8 @@ export type Database = {
           id: string
           notes: string | null
           rate: number
+          scheduled_for: string | null
+          scheduled_rate: number | null
         }
         Insert: {
           created_at?: string
@@ -30,6 +32,8 @@ export type Database = {
           id?: string
           notes?: string | null
           rate: number
+          scheduled_for?: string | null
+          scheduled_rate?: number | null
         }
         Update: {
           created_at?: string
@@ -38,6 +42,8 @@ export type Database = {
           id?: string
           notes?: string | null
           rate?: number
+          scheduled_for?: string | null
+          scheduled_rate?: number | null
         }
         Relationships: []
       }
